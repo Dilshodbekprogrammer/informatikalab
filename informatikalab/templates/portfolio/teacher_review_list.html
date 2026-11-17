@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}O‘quvchi ishlari portfoliosi - O‘qituvchi tekshiruvi{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0;">
+    <div>
+        <span class="role-pill teacher">O‘qituvchi nazorat paneli</span>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+            O‘quvchilar ishlari va qayta aloqa
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Sinf o‘quvchilari topshirgan mahsulotlarni ko‘rib chiqing, tavsiya va takomillashtirish vazifalarini bering
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>O‘quvchi</th>
+                    <th>Sinf</th>
+                    <th>Loyiha va Dars</th>
+                    <th>Versiya</th>
+                    <th>Holati</th>
+                    <th>Oxirgi yuborilgan vaqt</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                    <tr>
+                        <td>
+                            <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ sub.student.username }}</div>
+                        </td>
+                        <td>
+                            <span class="role-pill teacher">{{ sub.assignment.classroom.name }}</span>
+                        </td>
+                        <td>
+                            <strong style="color: var(--primary);">{{ sub.lesson_step.title }}</strong>
+                            <div style="font-size: 0.8rem; color: var(--accent);">{{ sub.assignment.project_template.title }}</div>
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; font-weight: 700;">v{{ sub.latest_version.version_number }}</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Jami: {{ sub.versions.count }} ta</div>
+                        </td>
+                        <td>
+                            <span class="role-pill {% if sub.status == 'approved' %}student{% elif sub.status == 'needs_revision' %}teacher{% else %}admin{% endif %}">
+                                {{ sub.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.82rem; color: var(--text-muted);">
+                            {{ sub.updated_at|date:"d.m.Y H:i" }}
+                        </td>
+                        <td>
+                            <a href="{% url 'portfolio:submission_detail' sub.id %}" class="btn btn-outline btn-sm">
+                                Ko‘rish va Izoh berish →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            Hozircha topshirilgan ishlar mavjud emas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

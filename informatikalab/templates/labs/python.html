@@ -1,0 +1,750 @@
+{% extends 'base.html' %}
+{% block title %}Python Algoritmik Terminali va Dasturlash Laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#dcfce7; color:#166534; font-weight:700;">
+            🐍 9-sinf Python matnli dasturlash muhiti
+        </span>
+    </div>
+</div>
+
+<!-- Sarlavha -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #16a34a; color: #fff; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">🐍</span>
+                Python Algoritmik Terminali va Dasturlash Laboratoriyasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Vizual Scratch'dan matnli dasturlashga o‘tish: Python kodlarini yozing, o‘zgaruvchilar, shartlar va sikllar natijasini jonli terminalda ko‘ring.
+            </p>
+        </div>
+
+        <!-- Boshqaruv tugmalari -->
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <button type="button" class="btn btn-sm" id="btnRunPython" onclick="runPythonCode()" style="background:#16a34a; color:#fff; font-weight:700; padding: 6px 14px; box-shadow: 0 1px 3px rgba(22,163,74,0.3);">
+                ▶️ Kodni ishga tushirish (Run)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="clearPythonEditor()" style="font-weight:700;">
+                🧹 Tozalash
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tayyor namunaviy dars algoritmlari tanlagichi -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center;">
+    <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);">📚 9-sinf namunaviy algoritmlari:</span>
+    <button type="button" class="btn btn-sm" id="btnPresetIf" onclick="loadPythonPreset('conditions')" style="background:#16a34a; color:#fff; font-weight:700; font-size: 0.78rem;">
+        1. Shartli tarmoqlanish (if/elif/else)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="btnPresetLoop" onclick="loadPythonPreset('loop')" style="font-weight:700; font-size: 0.78rem;">
+        2. Sikl operatori (for i in range)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="btnPresetList" onclick="loadPythonPreset('list')" style="font-weight:700; font-size: 0.78rem;">
+        3. Ro‘yxatlar va statistika (list, sum, max)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="btnPresetFactorial" onclick="loadPythonPreset('factorial')" style="font-weight:700; font-size: 0.78rem;">
+        4. Faktorial hisoblash (while sikli)
+    </button>
+</div>
+
+<!-- Asosiy Ishchi Maydon: Kod Muharriri (Chap) + Terminal Konsoli (O'ng) -->
+<div class="grid grid-cols-2" style="gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch;">
+    
+    <!-- Chap: Python Kod Muharriri -->
+    <div class="card" style="margin-bottom: 0; padding: 1rem; display: flex; flex-direction: column; height: 460px; background: #1e293b; border: 1px solid #334155;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="font-family: monospace; font-size: 0.85rem; color: #38bdf8; font-weight: 700;">
+                📄 main.py (Python kodi)
+            </div>
+            <span style="font-size: 0.72rem; color: #94a3b8;">Python 3 sintaksisi</span>
+        </div>
+
+        <textarea id="pythonCodeEditor" spellcheck="false" style="flex: 1; width: 100%; background: #0f172a; color: #f8fafc; font-family: 'Courier New', Courier, monospace; font-size: 0.92rem; line-height: 1.5; border: 1px solid #334155; border-radius: 6px; padding: 0.75rem; resize: none; outline: none;"></textarea>
+
+        <!-- Kirish qiymatlari (stdin / input) maydoni -->
+        <div style="margin-top: 0.4rem; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 0.35rem 0.6rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleStdinInput()">
+                <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 0.35rem;">
+                    📥 Kirish qiymatlari (stdin / input()) <span style="font-size: 0.68rem; color: #64748b; font-weight: 400;">— oldindan kiritish yoki prompt</span>
+                </span>
+                <span id="stdinChevron" style="font-size: 0.72rem; color: #38bdf8; font-weight: 600;">▼ Ochish</span>
+            </div>
+            <div id="stdinContainer" style="display: none; margin-top: 0.35rem;">
+                <p style="font-size: 0.7rem; color: #94a3b8; margin: 0 0 0.25rem 0;">
+                    Agar dasturda <code>input()</code> bo‘lsa, qiymatlarni qatorma-qator yozing (bo‘sh qoldirilsa, brauzer o‘zi ketma-ket so‘raydi):
+                </p>
+                <textarea id="pythonStdin" rows="2" placeholder="Masalan:&#10;10&#10;20" style="width: 100%; background: #020617; color: #38bdf8; font-family: monospace; font-size: 0.8rem; border: 1px solid #475569; border-radius: 4px; padding: 0.3rem 0.5rem; resize: vertical; outline: none;"></textarea>
+            </div>
+        </div>
+
+        <div style="margin-top: 0.4rem; font-size: 0.74rem; color: #94a3b8; display: flex; justify-content: space-between;">
+            <span>💡 Ctrl+Enter yoki yuqoridagi "Run" tugmasini bosing</span>
+            <span id="codeLinesCount">0 qator</span>
+        </div>
+    </div>
+
+    <!-- O'ng: Terminal Konsoli (stdout) -->
+    <div class="card" style="margin-bottom: 0; padding: 1rem; display: flex; flex-direction: column; height: 460px; background: #0f172a; border: 1px solid #334155;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="font-family: monospace; font-size: 0.85rem; color: #4ade80; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block;"></span>
+                🖥️ Terminal Konsoli (Chiqish - stdout)
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearTerminal()" style="font-size: 0.7rem; padding: 1px 6px; color: #94a3b8; border-color: #475569;">
+                Konsolni tozalash
+            </button>
+        </div>
+
+        <div id="terminalOutput" style="flex: 1; overflow-y: auto; background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; font-family: 'Courier New', Courier, monospace; font-size: 0.88rem; color: #38bdf8; line-height: 1.5; white-space: pre-wrap;">
+>>> Python 3.12 (InformatikaLab Sandbox Engine)
+>>> Dasturni ishga tushirish uchun "Kodni ishga tushirish" tugmasini bosing...
+        </div>
+
+        <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; font-size: 0.74rem; color: #94a3b8;">
+            <span>Status: <strong id="execStatusText" style="color: #4ade80;">Tayyor</strong></span>
+            <span>Bajarilish vaqti: <strong id="execDurationText">0.0 ms</strong></span>
+        </div>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Tahlil Qilish Formasi -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Python dasturi natijalarini portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Tuzgan Python kodingiz, terminalda olingan natijalar va tahliliy xulosangizni o‘qituvchiga topshiring.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="pythonPrediction" class="form-control" placeholder="Masalan: if/else shartiga ko‘ra harorat 25 dan yuqori bo‘lsa, yozgi kiyim tavsiya etiladi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Xulosa) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="pythonExplanation" class="form-control" placeholder="Masalan: Python dasturida shart operatori mantiqiy to‘g‘ri ishladi va natija terminalga chop etildi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="savePythonExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // PYTHON ALGORITMIK TERMINALI ENGINE (100% OFFLINE)
+    // ==========================================
+
+    const PRESETS = {
+        conditions: `# 1-Mavzu: Shartli tarmoqlanish (if / elif / else)
+harorat = int(input("Bugungi havo haroratini kiriting (masalan: 28): "))
+
+print("Kiritilgan harorat:", harorat, "gradus")
+
+if harorat >= 30:
+    print("Xulosa: Havo juda issiq! Salqin ichimliklar iching.")
+elif harorat >= 20:
+    print("Xulosa: Havo juda yoqimli va iliq. Sayr qilish uchun qulay!")
+elif harorat >= 10:
+    print("Xulosa: Havo salqin, yengil kurtka kiyish tavsiya etiladi.")
+else:
+    print("Xulosa: Havo sovuq! Issiq kiyining.")
+`,
+        loop: `# 2-Mavzu: Takrorlanuvchi algoritm (for sikli)
+print("1 dan 10 gacha sonlarning kvadratlari:")
+print("-----------------------------------")
+
+for i in range(1, 11):
+    kvadrat = i ** 2
+    print(f"{i} ning kvadrati = {kvadrat}")
+
+print("-----------------------------------")
+print("Sikl muvaffaqiyatli yakunlandi!")
+`,
+        list: `# 3-Mavzu: Ro'yxatlar va statistika (list)
+ballar = [85, 92, 78, 95, 88, 70, 90]
+
+print("O'quvchilar ballari ro'yxati:", ballar)
+jami = sum(ballar)
+soni = len(ballar)
+ortacha = round(jami / soni, 1)
+
+print("Jami ballar yig'indisi:", jami)
+print("O'quvchilar soni:", soni)
+print("Sinf bo'yicha o'rtacha ball:", ortacha)
+print("Eng yuqori ball:", max(ballar))
+print("Eng past ball:", min(ballar))
+`,
+        factorial: `# 4-Mavzu: Faktorial hisoblash (while sikli)
+n = 6
+faktorial = 1
+i = 1
+
+while i <= n:
+    faktorial = faktorial * i
+    i = i + 1
+
+print(f"{n}! (faktorial) = {faktorial}")
+print("Tushuntirish: 1 * 2 * 3 * 4 * 5 * 6 =", faktorial)
+`
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPythonPreset('conditions');
+
+        // Ctrl + Enter orqali ishga tushirish
+        document.getElementById('pythonCodeEditor').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runPythonCode();
+            }
+        });
+    });
+
+    function loadPythonPreset(name) {
+        document.querySelectorAll('#btnPresetIf, #btnPresetLoop, #btnPresetList, #btnPresetFactorial').forEach(b => {
+            b.className = 'btn btn-sm btn-outline';
+            b.style.background = '';
+            b.style.color = '';
+        });
+
+        const code = PRESETS[name] || PRESETS.conditions;
+        document.getElementById('pythonCodeEditor').value = code;
+        updateLineCount();
+
+        if (name === 'conditions') {
+            document.getElementById('btnPresetIf').className = 'btn btn-sm';
+            document.getElementById('btnPresetIf').style.background = '#16a34a';
+            document.getElementById('btnPresetIf').style.color = '#fff';
+            document.getElementById('pythonPrediction').value = "Agar harorat 28 gradus bo‘lsa, 'Havo juda yoqimli va iliq' xabari chiqadi.";
+            document.getElementById('pythonExplanation').value = "if/elif shartlar zanjiri tekshirilib, 28 >= 20 sharti rost (True) bo‘lgani uchun tegishli blok bajarildi.";
+            const stdinElem = document.getElementById('pythonStdin');
+            if (stdinElem) stdinElem.value = "28";
+        } else if (name === 'loop') {
+            document.getElementById('btnPresetLoop').className = 'btn btn-sm';
+            document.getElementById('btnPresetLoop').style.background = '#0284c7';
+            document.getElementById('btnPresetLoop').style.color = '#fff';
+            document.getElementById('pythonPrediction').value = "for sikli 1 dan 10 gacha bo‘lgan barcha sonlarni ketma-ket hisoblab chiqaradi.";
+            document.getElementById('pythonExplanation').value = "range(1, 11) hisoblagich o‘zgaruvchisi 10 marta aylanib, har bir sonning kvadrati chop etildi.";
+            const stdinElem = document.getElementById('pythonStdin');
+            if (stdinElem) stdinElem.value = "";
+        } else if (name === 'list') {
+            document.getElementById('btnPresetList').className = 'btn btn-sm';
+            document.getElementById('btnPresetList').style.background = '#9333ea';
+            document.getElementById('btnPresetList').style.color = '#fff';
+            document.getElementById('pythonPrediction').value = "sum va len funksiyalari orqali o‘rtacha ball hamda eng yuqori/past ballar topiladi.";
+            document.getElementById('pythonExplanation').value = "Ro‘yxat (list) elementlari agregat funksiyalari yordamida qayta ishlandi.";
+            const stdinElem = document.getElementById('pythonStdin');
+            if (stdinElem) stdinElem.value = "";
+        } else if (name === 'factorial') {
+            document.getElementById('btnPresetFactorial').className = 'btn btn-sm';
+            document.getElementById('btnPresetFactorial').style.background = '#ca8a04';
+            document.getElementById('btnPresetFactorial').style.color = '#fff';
+            document.getElementById('pythonPrediction').value = "6! = 720 natijasi chiqadi.";
+            document.getElementById('pythonExplanation').value = "while sikli sharti (i <= 6) rost bo‘lguncha ko‘paytma hisoblandi.";
+            const stdinElem = document.getElementById('pythonStdin');
+            if (stdinElem) stdinElem.value = "";
+        }
+    }
+
+    function toggleStdinInput() {
+        const c = document.getElementById('stdinContainer');
+        const ch = document.getElementById('stdinChevron');
+        if (c.style.display === 'none') {
+            c.style.display = 'block';
+            ch.innerText = '▲ Yashirish';
+        } else {
+            c.style.display = 'none';
+            ch.innerText = '▼ Ochish';
+        }
+    }
+
+    function clearPythonEditor() {
+        document.getElementById('pythonCodeEditor').value = '';
+        updateLineCount();
+    }
+
+    function clearTerminal() {
+        document.getElementById('terminalOutput').innerText = '>>> Konsol tozalandi.\n';
+    }
+
+    function updateLineCount() {
+        const text = document.getElementById('pythonCodeEditor').value;
+        const lines = text.split('\n').length;
+        document.getElementById('codeLinesCount').innerText = `${lines} qator`;
+    }
+
+    // Python yordamchi funksiyalari va prototiplari (100% oflayn)
+    if (!Array.prototype.append) {
+        Array.prototype.append = function(val) { this.push(val); };
+    }
+    if (!Array.prototype.remove) {
+        Array.prototype.remove = function(val) {
+            let idx = this.indexOf(val);
+            if (idx !== -1) this.splice(idx, 1);
+        };
+    }
+    if (!Array.prototype.count) {
+        Array.prototype.count = function(val) {
+            return this.filter(x => x === val).length;
+        };
+    }
+    if (!String.prototype.lower) {
+        String.prototype.lower = function() { return this.toLowerCase(); };
+    }
+    if (!String.prototype.upper) {
+        String.prototype.upper = function() { return this.toUpperCase(); };
+    }
+    if (!String.prototype.strip) {
+        String.prototype.strip = function() { return this.trim(); };
+    }
+
+    function pyInt(val) {
+        if (val === undefined || val === null || val === '') return 0;
+        if (typeof val === 'boolean') return val ? 1 : 0;
+        let n = Number(val);
+        if (isNaN(n)) {
+            throw new Error(`ValueError: invalid literal for int() with base 10: '${val}'`);
+        }
+        return Math.trunc(n);
+    }
+
+    function pyFloat(val) {
+        if (val === undefined || val === null || val === '') return 0.0;
+        if (typeof val === 'boolean') return val ? 1.0 : 0.0;
+        let n = Number(val);
+        if (isNaN(n)) {
+            throw new Error(`ValueError: could not convert string to float: '${val}'`);
+        }
+        return n;
+    }
+
+    function pyStr(val) {
+        if (val === undefined || val === null) return "None";
+        if (val === true) return "True";
+        if (val === false) return "False";
+        if (Array.isArray(val)) {
+            return "[" + val.map(x => (typeof x === 'string' ? `'${x}'` : pyStr(x))).join(', ') + "]";
+        }
+        return String(val);
+    }
+
+    function pyBool(val) {
+        if (!val) return false;
+        if (Array.isArray(val) && val.length === 0) return false;
+        return true;
+    }
+
+    function pyLen(val) {
+        if (val === undefined || val === null) return 0;
+        if (typeof val === 'string' || Array.isArray(val)) return val.length;
+        if (typeof val === 'object') return Object.keys(val).length;
+        return 0;
+    }
+
+    function pyRange(start, stop, step) {
+        if (stop === undefined) {
+            stop = start;
+            start = 0;
+        }
+        if (step === undefined) {
+            step = start <= stop ? 1 : -1;
+        }
+        const res = [];
+        if (step > 0) {
+            for (let i = start; i < stop; i += step) res.push(i);
+        } else if (step < 0) {
+            for (let i = start; i > stop; i += step) res.push(i);
+        }
+        return res;
+    }
+
+    function pySum(arr) {
+        return Array.isArray(arr) ? arr.reduce((a, b) => a + Number(b), 0) : 0;
+    }
+
+    function pyMax(...args) {
+        if (args.length === 1 && Array.isArray(args[0])) return Math.max(...args[0]);
+        return Math.max(...args);
+    }
+
+    function pyMin(...args) {
+        if (args.length === 1 && Array.isArray(args[0])) return Math.min(...args[0]);
+        return Math.min(...args);
+    }
+
+    function pyRound(val, d = 0) {
+        return Number(Number(val).toFixed(d));
+    }
+
+    function pyType(val) {
+        if (val === null) return "<class 'NoneType'>";
+        if (Array.isArray(val)) return "<class 'list'>";
+        if (typeof val === 'number') return Number.isInteger(val) ? "<class 'int'>" : "<class 'float'>";
+        if (typeof val === 'string') return "<class 'str'>";
+        if (typeof val === 'boolean') return "<class 'bool'>";
+        return "<class 'object'>";
+    }
+
+    function pyList(val) {
+        if (!val) return [];
+        if (Array.isArray(val)) return [...val];
+        if (typeof val === 'string') return val.split('');
+        return [val];
+    }
+
+    // Sof JavaScriptda Python interpreter emulyatsiyasi (Xavfsiz va 100% oflayn)
+    function runPythonCode() {
+        const code = document.getElementById('pythonCodeEditor').value;
+        const terminal = document.getElementById('terminalOutput');
+        const startTime = performance.now();
+
+        terminal.innerText = '>>> main.py ishga tushirilmoqda...\n----------------------------------------\n';
+        document.getElementById('execStatusText').innerText = "Bajarilmoqda...";
+        document.getElementById('execStatusText').style.color = "#facc15";
+
+        const outputLogs = [];
+
+        function pyPrint(...args) {
+            outputLogs.push(args.map(a => pyStr(a)).join(' '));
+        }
+
+        // input() funksiyasi: stdin maydonidan yoki window.prompt orqali qiymat oladi
+        function pyInput(promptMsg) {
+            const stdinElem = document.getElementById('pythonStdin');
+            let val = null;
+            if (stdinElem && stdinElem.value.trim().length > 0) {
+                let lines = stdinElem.value.split('\n');
+                val = lines.shift();
+                stdinElem.value = lines.join('\n');
+            } else {
+                let msg = promptMsg ? promptMsg : "Python input() uchun qiymat kiriting:";
+                val = window.prompt(msg);
+            }
+            if (val === null) {
+                throw new Error("KeyboardInterrupt: Foydalanuvchi kiritishni bekor qildi (Cancel bosildi).");
+            }
+            let display = (promptMsg ? promptMsg : "> ") + val;
+            outputLogs.push(display);
+            return String(val);
+        }
+
+        try {
+            // Kodni JS sandbox uchun tayyorlash
+            let jsCode = translateSimplePythonToJS(code);
+
+            // Xavfsiz ijro muhiti
+            const runner = new Function(
+                '__loopIterCount',
+                'print', 'input', 'int', 'float', 'str', 'bool',
+                'len', 'range', 'sum', 'max', 'min', 'round',
+                'abs', 'pow', 'type', 'list', 'True', 'False', 'None',
+                jsCode
+            );
+
+            runner(
+                0,
+                pyPrint,
+                pyInput,
+                pyInt,
+                pyFloat,
+                pyStr,
+                pyBool,
+                pyLen,
+                pyRange,
+                pySum,
+                pyMax,
+                pyMin,
+                pyRound,
+                Math.abs,
+                Math.pow,
+                pyType,
+                pyList,
+                true,
+                false,
+                null
+            );
+
+            const duration = (performance.now() - startTime).toFixed(1);
+            terminal.innerText += outputLogs.join('\n') + '\n\n----------------------------------------\n';
+            terminal.innerText += `>>> Jarayon muvaffaqiyatli tugallandi (Exit code 0, Vaqt: ${duration} ms)`;
+
+            document.getElementById('execStatusText').innerText = "Muvaffaqiyatli ✅";
+            document.getElementById('execStatusText').style.color = "#4ade80";
+            document.getElementById('execDurationText').innerText = `${duration} ms`;
+
+        } catch (err) {
+            const duration = (performance.now() - startTime).toFixed(1);
+            if (outputLogs.length > 0) {
+                terminal.innerText += outputLogs.join('\n') + '\n';
+            }
+            terminal.innerText += `\n❌ Python Sintaksis yoki Ijro Xatoligi (Syntax/Runtime Error):\n${err.message}\n`;
+            terminal.innerText += `\n💡 Maslahat: Har bir qatorda sintaksis, qavslar va chekinishlar (indentation) to‘g‘riligini tekshiring.`;
+
+            document.getElementById('execStatusText').innerText = "Xatolik bor ❌";
+            document.getElementById('execStatusText').style.color = "#f87171";
+            document.getElementById('execDurationText').innerText = `${duration} ms`;
+        }
+    }
+
+    function replaceOutsideQuotes(text) {
+        // Matnli satrlar ichiga kirmasdan Python operatorlarini almashtirish
+        const tokens = text.split(/("[^"]*"|'[^']*'|`[^`]*`)/);
+        for (let i = 0; i < tokens.length; i += 2) {
+            let t = tokens[i];
+            t = t.replace(/\bTrue\b/g, 'true');
+            t = t.replace(/\bFalse\b/g, 'false');
+            t = t.replace(/\bNone\b/g, 'null');
+            t = t.replace(/\band\b/g, '&&');
+            t = t.replace(/\bor\b/g, '||');
+            t = t.replace(/\bnot\s+/g, '!');
+            t = t.replace(/\bis not\b/g, '!==');
+            t = t.replace(/\bis\b/g, '===');
+            t = t.replace(/(\b[\w\d_.]+|\([^)]+\))\s*\/\/\s*(\b[\w\d_.]+|\([^)]+\))/g, 'Math.floor(($1) / ($2))');
+            tokens[i] = t;
+        }
+        return tokens.join('');
+    }
+
+    function translateSimplePythonToJS(pyCode) {
+        // Python kodini xavfsiz JavaScript kodiga translyatsiya qilish
+        const rawLines = pyCode.replace(/\t/g, '    ').split('\n');
+        let jsLines = [];
+        let stack = [];
+
+        for (let rawLine of rawLines) {
+            // Izohlarni ajratib olish (agar tirnoq ichida bo'lmasa)
+            let inQuote = false;
+            let quoteChar = null;
+            let commentIdx = -1;
+            for (let i = 0; i < rawLine.length; i++) {
+                let ch = rawLine[i];
+                if (ch === '"' || ch === "'") {
+                    if (!inQuote) {
+                        inQuote = true;
+                        quoteChar = ch;
+                    } else if (quoteChar === ch) {
+                        inQuote = false;
+                    }
+                } else if (ch === '#' && !inQuote) {
+                    commentIdx = i;
+                    break;
+                }
+            }
+
+            let line = commentIdx !== -1 ? rawLine.substring(0, commentIdx) : rawLine;
+            if (!line.trim()) continue;
+
+            let indent = line.search(/\S/);
+            let trimmed = line.trim();
+
+            // f-string: f"..." -> `...`
+            trimmed = trimmed.replace(/f"([^"]*)"/g, (m, content) => {
+                let inside = content.replace(/\{([^}]+)\}/g, '${$1}');
+                return '`' + inside + '`';
+            }).replace(/f'([^']*)'/g, (m, content) => {
+                let inside = content.replace(/\{([^}]+)\}/g, '${$1}');
+                return '`' + inside + '`';
+            });
+
+            // Operatorlarni almashtirish
+            trimmed = replaceOutsideQuotes(trimmed);
+
+            let isElif = trimmed.startsWith('elif ') && trimmed.endsWith(':');
+            let isElse = trimmed === 'else:';
+
+            if (isElif || isElse) {
+                while (stack.length > 0 && stack[stack.length - 1].indent > indent) {
+                    stack.pop();
+                    jsLines.push(" ".repeat(indent) + "}");
+                }
+                if (stack.length > 0 && stack[stack.length - 1].indent === indent && stack[stack.length - 1].type === 'if') {
+                    if (isElif) {
+                        let cond = trimmed.substring(5, trimmed.length - 1).trim();
+                        jsLines.push(" ".repeat(indent) + `} else if (${cond}) {`);
+                    } else {
+                        jsLines.push(" ".repeat(indent) + "} else {");
+                    }
+                    continue;
+                }
+            }
+
+            // Oddiy satr: joriy chekinishdan chuqurroq bloklarni yopish
+            while (stack.length > 0 && indent <= stack[stack.length - 1].indent) {
+                let b = stack.pop();
+                jsLines.push(" ".repeat(b.indent) + "}");
+            }
+
+            // if
+            if (trimmed.startsWith('if ') && trimmed.endsWith(':')) {
+                let cond = trimmed.substring(3, trimmed.length - 1).trim();
+                jsLines.push(" ".repeat(indent) + `if (${cond}) {`);
+                stack.push({ type: 'if', indent: indent });
+                continue;
+            }
+
+            // for var in range(...)
+            // for var in list
+            if (trimmed.startsWith('for ') && trimmed.endsWith(':')) {
+                let body = trimmed.substring(4, trimmed.length - 1).trim();
+                if (body.includes(' in range(') && body.endsWith(')')) {
+                    let parts = body.split(' in range(');
+                    let varName = parts[0].trim();
+                    let rangeArgs = parts[1].substring(0, parts[1].length - 1).trim();
+                    jsLines.push(" ".repeat(indent) + `for (let ${varName} of range(${rangeArgs})) {`);
+                } else if (body.includes(' in ')) {
+                    let parts = body.split(' in ');
+                    let varName = parts[0].trim();
+                    let seqName = parts[1].trim();
+                    jsLines.push(" ".repeat(indent) + `for (let ${varName} of ${seqName}) {`);
+                } else {
+                    jsLines.push(" ".repeat(indent) + `/* for parse error */`);
+                }
+                jsLines.push(" ".repeat(indent + 4) + `if (++__loopIterCount > 50000) throw new Error("TimeLimitExceeded: Sikl 50,000 martadan ortiq takrorlandi!");`);
+                stack.push({ type: 'loop', indent: indent });
+                continue;
+            }
+
+            // while
+            if (trimmed.startsWith('while ') && trimmed.endsWith(':')) {
+                let cond = trimmed.substring(6, trimmed.length - 1).trim();
+                jsLines.push(" ".repeat(indent) + `while (${cond}) {`);
+                jsLines.push(" ".repeat(indent + 4) + `if (++__loopIterCount > 50000) throw new Error("TimeLimitExceeded: Sikl 50,000 martadan ortiq takrorlandi (cheksiz sikl ehtimoli)!");`);
+                stack.push({ type: 'loop', indent: indent });
+                continue;
+            }
+
+            // print()
+            if (trimmed.startsWith('print(')) {
+                jsLines.push(" ".repeat(indent) + trimmed + ';');
+                continue;
+            }
+
+            // pass, break, continue
+            if (trimmed === 'pass') {
+                jsLines.push(" ".repeat(indent) + '/* pass */;');
+                continue;
+            }
+            if (trimmed === 'break' || trimmed === 'continue') {
+                jsLines.push(" ".repeat(indent) + trimmed + ';');
+                continue;
+            }
+
+            // +=, -=, *=, /=, //=
+            let augMatch = trimmed.match(/^([a-zA-Z_]\w*(?:\[[^\]]+\])?)\s*(\+=|-=|\*=|\/=|\/\/=)\s*(.+)$/);
+            if (augMatch) {
+                let varName = augMatch[1];
+                let op = augMatch[2];
+                let expr = augMatch[3];
+                if (op === '//=') {
+                    jsLines.push(" ".repeat(indent) + `${varName} = Math.floor((${varName}) / (${expr}));`);
+                } else {
+                    jsLines.push(" ".repeat(indent) + `${varName} ${op} ${expr};`);
+                }
+                continue;
+            }
+
+            // massiv[0] = 5
+            let arrAssign = trimmed.match(/^([a-zA-Z_]\w*\[[^\]]+\])\s*=\s*([^=].*)$/);
+            if (arrAssign) {
+                jsLines.push(" ".repeat(indent) + `${arrAssign[1]} = ${arrAssign[2]};`);
+                continue;
+            }
+
+            // a = expr yoki a, b = 1, 2
+            let normAssign = trimmed.match(/^([a-zA-Z_]\w*(?:\s*,\s*[a-zA-Z_]\w*)*)\s*=\s*([^=].*)$/);
+            if (normAssign) {
+                let left = normAssign[1].trim();
+                let right = normAssign[2].trim();
+                if (left.includes(',')) {
+                    let vars = left.split(',').map(v => v.trim());
+                    jsLines.push(" ".repeat(indent) + `var [${vars.join(', ')}] = [${right}];`);
+                } else {
+                    jsLines.push(" ".repeat(indent) + `var ${left} = ${right};`);
+                }
+                continue;
+            }
+
+            jsLines.push(" ".repeat(indent) + trimmed + ';');
+        }
+
+        while (stack.length > 0) {
+            let b = stack.pop();
+            jsLines.push(" ".repeat(b.indent) + "}");
+        }
+
+        return jsLines.join('\n');
+    }
+
+    // Portfolioga saqlash
+    function savePythonExperiment() {
+        const explanation = document.getElementById('pythonExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni to‘ldiring!");
+            document.getElementById('pythonExplanation').focus();
+            return;
+        }
+
+        const code = document.getElementById('pythonCodeEditor').value;
+        const prediction = document.getElementById('pythonPrediction').value.trim();
+        const termOut = document.getElementById('terminalOutput').innerText;
+
+        const payload = {
+            lab_type: 'python',
+            title: `Python algoritmlar tajribasi (${code.split('\n')[0].replace('#', '').trim()})`,
+            input_data: {
+                code: code,
+                lines_count: code.split('\n').length
+            },
+            prediction: prediction,
+            calculated_result: `Terminal chiqishi: ${termOut.substring(0, 150)}...`,
+            student_explanation: explanation,
+            additional_data: {
+                python_code: code,
+                stdout: termOut
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ Python dasturi va xulosangiz portfolioga muvaffaqiyatli saqlandi!");
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik: " + err);
+        });
+    }
+</script>
+{% endblock %}

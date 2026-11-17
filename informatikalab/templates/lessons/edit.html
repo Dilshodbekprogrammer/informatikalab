@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Darsni tahrirlash - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'lessons:detail' lesson.id %}" class="btn btn-outline btn-sm">← Dars tafsilotiga qaytish</a>
+</div>
+
+<form method="post" id="lessonEditForm">
+    {% csrf_token %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">✏️ Darsni tahrirlash</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Dars ssenariysi va bosqichlarini yangilang
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" name="status" value="draft" class="btn btn-outline">
+                    💾 Qoralama holatida saqlash
+                </button>
+                <button type="submit" name="status" value="assigned" class="btn btn-primary">
+                    🚀 Sinfga biriktirish va saqlash
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3" style="gap: 1rem;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Dars mavzusi</label>
+                <input type="text" name="title" class="form-control" value="{{ lesson.title }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Sinf</label>
+                <select name="classroom_id" class="form-control">
+                    <option value="">-- Sinfni tanlang --</option>
+                    {% for c in classrooms %}
+                        <option value="{{ c.id }}" {% if lesson.classroom and lesson.classroom.id == c.id %}selected{% endif %}>
+                            {{ c.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3" style="gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label">Metod</label>
+                <select name="method_id" class="form-control" required>
+                    {% for m in methods %}
+                        <option value="{{ m.id }}" {% if lesson.method and lesson.method.id == m.id %}selected{% endif %}>
+                            {{ m.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dars davomiyligi (daqiqa)</label>
+                <input type="number" id="lessonDuration" name="duration_minutes" class="form-control" value="{{ lesson.duration_minutes }}" min="15" max="90" onchange="updateTotalTime()" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Faoliyat turi</label>
+                <select name="activity_type" class="form-control">
+                    <option value="individual" {% if lesson.activity_type == 'individual' %}selected{% endif %}>Individual faoliyat</option>
+                    <option value="group" {% if lesson.activity_type == 'group' %}selected{% endif %}>Guruhli faoliyat</option>
+                    <option value="mixed" {% if lesson.activity_type == 'mixed' %}selected{% endif %}>Aralash faoliyat</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2" style="gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label">Kuzatiladigan o‘quv maqsadi</label>
+                <textarea name="learning_objective" class="form-control" rows="2" required>{{ lesson.learning_objective }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mavjud qurilmalar va sharoit</label>
+                <textarea name="available_equipment" class="form-control" rows="2">{{ lesson.available_equipment }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bosqichlar -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div>
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">⏱️ Dars bosqichlari ssenariysi</h2>
+            </div>
+            <div id="timeCounterBox" style="padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 700; background-color: #f1f5f9; border: 1px solid var(--border-color);">
+                Bosqichlar vaqti: <span id="totalTimeDisplay">0</span> / <span id="targetTimeDisplay">{{ lesson.duration_minutes }}</span> daq
+                <span id="timeStatusBadge" style="margin-left: 0.5rem; font-size: 0.75rem;"></span>
+            </div>
+        </div>
+
+        <div id="stagesContainer">
+            {% for stage in lesson.stages.all %}
+                <div class="stage-item card" style="background-color: #fafafa; border: 1px solid #e2e8f0; margin-bottom: 1rem; padding: 1.1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                            <span class="role-pill teacher" style="font-size: 0.75rem;">{{ stage.order }}-bosqich</span>
+                            <input type="text" name="stage_name[]" class="form-control" style="font-weight: 700; max-width: 380px;" value="{{ stage.name }}" placeholder="Bosqich nomi" required>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Vaqt:</label>
+                            <input type="number" name="stage_duration[]" class="form-control stage-duration-input" style="width: 75px; text-align: center;" value="{{ stage.duration_minutes }}" min="1" max="60" onchange="updateTotalTime()" required>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">daq</span>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeStage(this)">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2" style="gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem; color: #1e40af;">👨‍🏫 O‘qituvchi harakati</label>
+                            <textarea name="stage_teacher_action[]" class="form-control" rows="2">{{ stage.teacher_action }}</textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem; color: #065f46;">🧑‍🎓 O‘quvchi harakati</label>
+                            <textarea name="stage_student_action[]" class="form-control" rows="2">{{ stage.student_action }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3" style="gap: 0.75rem;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;">Topshiriq</label>
+                            <input type="text" name="stage_task[]" class="form-control" value="{{ stage.task_description }}">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;">Resurs</label>
+                            <input type="text" name="stage_resource[]" class="form-control" value="{{ stage.resources }}">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;">Kutiladigan mahsulot</label>
+                            <input type="text" name="stage_product[]" class="form-control" value="{{ stage.expected_product }}">
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <button type="button" class="btn btn-outline" onclick="addNewStage()">
+                ➕ Yangi bosqich qo‘shish
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    function updateTotalTime() {
+        const targetDuration = parseInt(document.getElementById('lessonDuration').value) || 45;
+        document.getElementById('targetTimeDisplay').innerText = targetDuration;
+
+        let total = 0;
+        const durationInputs = document.querySelectorAll('.stage-duration-input');
+        durationInputs.forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+
+        const totalSpan = document.getElementById('totalTimeDisplay');
+        const badge = document.getElementById('timeStatusBadge');
+        const box = document.getElementById('timeCounterBox');
+        totalSpan.innerText = total;
+
+        if (total === targetDuration) {
+            box.style.backgroundColor = '#d1fae5';
+            box.style.borderColor = '#10b981';
+            box.style.color = '#065f46';
+            badge.innerText = '✅ To‘liq muvozanatlashgan';
+        } else if (total < targetDuration) {
+            box.style.backgroundColor = '#fef3c7';
+            box.style.borderColor = '#f59e0b';
+            box.style.color = '#92400e';
+            badge.innerText = `⚠️ ${targetDuration - total} daqiqa yetishmayapti`;
+        } else {
+            box.style.backgroundColor = '#fee2e2';
+            box.style.borderColor = '#ef4444';
+            box.style.color = '#991b1b';
+            badge.innerText = `⛔ ${total - targetDuration} daqiqa ortiqcha`;
+        }
+    }
+
+    function removeStage(button) {
+        button.closest('.stage-item').remove();
+        document.querySelectorAll('.stage-item').forEach((el, idx) => {
+            el.querySelector('.role-pill').innerText = `${idx + 1}-bosqich`;
+        });
+        updateTotalTime();
+    }
+
+    function addNewStage() {
+        const container = document.getElementById('stagesContainer');
+        const count = container.querySelectorAll('.stage-item').length + 1;
+        const html = `
+        <div class="stage-item card" style="background-color: #fafafa; border: 1px solid #e2e8f0; margin-bottom: 1rem; padding: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                    <span class="role-pill teacher" style="font-size: 0.75rem;">${count}-bosqich</span>
+                    <input type="text" name="stage_name[]" class="form-control" style="font-weight: 700; max-width: 380px;" placeholder="Bosqich nomi" required>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Vaqt:</label>
+                    <input type="number" name="stage_duration[]" class="form-control stage-duration-input" style="width: 75px; text-align: center;" value="5" min="1" max="60" onchange="updateTotalTime()" required>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">daq</span>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeStage(this)">✕</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2" style="gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                    <label class="form-label" style="font-size: 0.8rem; color: #1e40af;">👨‍🏫 O‘qituvchi harakati</label>
+                    <textarea name="stage_teacher_action[]" class="form-control" rows="2"></textarea>
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 0.8rem; color: #065f46;">🧑‍🎓 O‘quvchi harakati</label>
+                    <textarea name="stage_student_action[]" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="grid grid-cols-3" style="gap: 0.75rem;">
+                <div><label class="form-label" style="font-size: 0.8rem;">Topshiriq</label><input type="text" name="stage_task[]" class="form-control"></div>
+                <div><label class="form-label" style="font-size: 0.8rem;">Resurs</label><input type="text" name="stage_resource[]" class="form-control"></div>
+                <div><label class="form-label" style="font-size: 0.8rem;">Kutiladigan mahsulot</label><input type="text" name="stage_product[]" class="form-control"></div>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+        updateTotalTime();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateTotalTime);
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Izoh berish - v{{ version.version_number }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'portfolio:submission_detail' submission.id %}" class="btn btn-outline btn-sm">← Topshiriqqa qaytish</a>
+</div>
+
+<div class="card" style="max-width: 700px; margin: 0 auto; box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <span class="role-pill teacher">O‘qituvchi taqrizi</span>
+            <h1 style="font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+                v{{ version.version_number }} bo‘yicha izoh va takomillashtirish vazifasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                O‘quvchi: <strong>{{ submission.student.get_full_name|default:submission.student.username }}</strong> | {{ submission.lesson_step.title }}
+            </p>
+        </div>
+    </div>
+
+    <!-- O'quvchining ushbu versiyadagi ishi -->
+    <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.25rem;">
+        <strong style="color: var(--primary); font-size: 0.9rem;">O‘quvchi taqdim etgan mahsulot matni:</strong>
+        <div style="font-size: 0.9rem; color: #334155; margin-top: 0.35rem; line-height: 1.5; white-space: pre-line;">
+            {{ version.content_text }}
+        </div>
+        {% if version.individual_contribution %}
+            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #1e40af;">
+                <strong>Shaxsiy hissasi:</strong> {{ version.individual_contribution }}
+            </div>
+        {% endif %}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">O‘qituvchi izohi va metodik tavsiyasi</label>
+            <textarea name="feedback_text" class="form-control" rows="4" placeholder="O‘quvchining yechimida nima yaxshi chiqqan va qaysi nuqtani takomillashtirish kerakligini aniq yozing ..." required></textarea>
+        </div>
+
+        <div class="grid grid-cols-3" style="gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div class="form-group">
+                <label class="form-label" style="font-size: 0.82rem;">Tushunarlilik mezoni</label>
+                <select name="criteria_clarity" class="form-control">
+                    <option value="A’lo darajada">A’lo darajada</option>
+                    <option value="Yaxshi">Yaxshi</option>
+                    <option value="Qoniqarli">Qoniqarli</option>
+                    <option value="Qayta ishlash zarur">Qayta ishlash zarur</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="font-size: 0.82rem;">Texnik to‘g‘rilik</label>
+                <select name="criteria_technical" class="form-control">
+                    <option value="To‘liq to‘g‘ri">To‘liq to‘g‘ri</option>
+                    <option value="Kichik xatolik bor">Kichik xatolik bor</option>
+                    <option value="Formula xato">Formula xato</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="font-size: 0.82rem;">Ijodiy yondashuv</label>
+                <select name="criteria_creativity" class="form-control">
+                    <option value="Ijodiy va chuqur">Ijodiy va chuqur</option>
+                    <option value="O‘rtacha">O‘rtacha</option>
+                    <option value="Shabloniy">Shabloniy</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="background-color: #fefce8; border: 1px solid #fef08a; padding: 1rem; border-radius: var(--radius-sm);">
+            <label class="form-label" style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; margin-bottom: 0;">
+                <input type="checkbox" name="requires_revision" checked style="width: 18px; height: 18px;">
+                <span style="font-size: 0.95rem; font-weight: 700; color: #854d0e;">
+                    Takomillashtirish vazifasini berish (O‘quvchi qayta ishlab, yangi versiya yuborishi kerak)
+                </span>
+            </label>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                Izohni saqlash va O‘quvchiga yuborish
+            </button>
+            <a href="{% url 'portfolio:submission_detail' submission.id %}" class="btn btn-outline">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

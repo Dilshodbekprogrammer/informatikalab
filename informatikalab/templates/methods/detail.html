@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{{ method.title }} - Metod kartochkasi{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'methods:list' %}" class="btn btn-outline btn-sm">← Barcha metodlarga qaytish</a>
+</div>
+
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase;">
+                Xorijiy tajriba: {{ method.foreign_country }}
+            </span>
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+                {{ method.title }}
+            </h1>
+        </div>
+        <div>
+            <a href="{% url 'lessons:create' %}?method={{ method.id }}" class="btn btn-accent btn-lg">
+                ✨ Shu metod asosida dars yaratish
+            </a>
+        </div>
+    </div>
+
+    <!-- 1. Tushuntirish va qo'llanish vaziyati -->
+    <div class="grid grid-cols-2" style="margin-bottom: 1.5rem;">
+        <div style="background-color: #f8fafc; padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+                📖 Metodning sodda tushuntirishi
+            </h3>
+            <p style="font-size: 0.93rem; color: #334155; line-height: 1.6;">
+                {{ method.short_description }}
+            </p>
+        </div>
+
+        <div style="background-color: #f8fafc; padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+                🎯 Qaysi vaziyatda qo‘llanishi
+            </h3>
+            <p style="font-size: 0.93rem; color: #334155; line-height: 1.6;">
+                {{ method.applicable_when }}
+            </p>
+        </div>
+    </div>
+
+    <!-- 2. O'qituvchi va O'quvchining vazifalari -->
+    <div class="grid grid-cols-2" style="margin-bottom: 1.5rem;">
+        <div style="border: 1px solid #bfdbfe; background-color: #eff6ff; padding: 1.25rem; border-radius: var(--radius-sm);">
+            <h3 style="font-size: 1rem; font-weight: 700; color: #1e40af; margin-bottom: 0.5rem;">
+                👨‍🏫 O‘qituvchining vazifalari
+            </h3>
+            <div style="font-size: 0.92rem; color: #1e3a8a; line-height: 1.6; white-space: pre-line;">
+                {{ method.teacher_role }}
+            </div>
+        </div>
+
+        <div style="border: 1px solid #bbf7d0; background-color: #f0fdf4; padding: 1.25rem; border-radius: var(--radius-sm);">
+            <h3 style="font-size: 1rem; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">
+                🧑‍🎓 O‘quvchining vazifalari
+            </h3>
+            <div style="font-size: 0.92rem; color: #14532d; line-height: 1.6; white-space: pre-line;">
+                {{ method.student_role }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Dars bosqichlari & 9-sinf amaliy misoli -->
+    <div class="grid grid-cols-2" style="margin-bottom: 1.5rem;">
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="card-title" style="margin-bottom: 0.75rem;">⏱️ Dars bosqichlari umumiy tavsifi</h3>
+            <div style="font-size: 0.92rem; color: #334155; line-height: 1.6; white-space: pre-line;">
+                {{ method.lesson_stages_overview }}
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="card-title" style="margin-bottom: 0.75rem;">💻 Informatika fanidan amaliy misol (9-sinf)</h3>
+            <div style="font-size: 0.92rem; color: #334155; line-height: 1.6; white-space: pre-line;">
+                {{ method.sample_cs_case }}
+            </div>
+            <div style="margin-top: 1rem; padding: 0.65rem 0.85rem; background-color: #f1f5f9; border-radius: var(--radius-sm); font-size: 0.85rem;">
+                <strong>Kerakli qurilmalar va materiallar:</strong> {{ method.required_equipment }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Xorijiy tajriba va O'zbekiston maktablariga moslashtirish (Fakt bilan ajratilgan) -->
+    <div style="margin-top: 1.5rem; border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+            🌍 Xorijiy ilg‘or tajriba va O‘zbekiston sharoitiga moslashtirish
+        </h2>
+
+        <div class="grid grid-cols-2">
+            <!-- Xorijiy amaliyotdan tekshirilgan fakt -->
+            <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;">
+                    <span style="background-color: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">
+                        RASMIY FAKT
+                    </span>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: #0f172a;">
+                        {{ method.foreign_country }} tajribasi
+                    </h4>
+                </div>
+                <p style="font-size: 0.9rem; color: #334155; line-height: 1.6; margin-bottom: 0.75rem;">
+                    {{ method.foreign_practice_case }}
+                </p>
+                <div style="font-size: 0.82rem; color: #64748b; background-color: #ffffff; padding: 0.5rem; border-radius: 4px; border: 1px solid #e2e8f0;">
+                    <strong>Rasmiy manba:</strong> {{ method.source_citation }}
+                    {% if method.source_url %}
+                        <div style="margin-top: 0.35rem;">
+                            <a href="{{ method.source_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); font-weight: 600; text-decoration: underline;">
+                                🌐 Rasmiy manba havolasini ochish ({{ method.source_url }}) ↗
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Biz taklif qilayotgan moslashtirish -->
+            <div style="background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: var(--radius-sm); padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;">
+                    <span style="background-color: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">
+                        TAVSIYA ETILADIGAN MOSLASHTIRISH
+                    </span>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: #115e59;">
+                        O‘zbekiston maktablariga tatbiq etish
+                    </h4>
+                </div>
+                <p style="font-size: 0.9rem; color: #134e4a; line-height: 1.6;">
+                    {{ method.adaptation_recommendation }}
+                </p>
+                <div style="margin-top: 0.85rem; font-size: 0.8rem; color: #0d9488; font-style: italic;">
+                    * Ushbu moslashtirish mahalliy o‘quv dasturi va 45 daqiqalik dars tartibiga mos keladi.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

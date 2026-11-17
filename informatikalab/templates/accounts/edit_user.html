@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ target_user.get_full_name|default:target_user.username }} - Tahrirlash{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+    <div style="margin-bottom: 1.25rem;">
+        <a href="{% url 'accounts:users_list' %}" class="btn btn-outline btn-sm">← Foydalanuvchilar ro‘yxatiga qaytish</a>
+    </div>
+
+    <div class="card" style="box-shadow: var(--shadow-md);">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+            <div>
+                <span class="role-pill {{ target_user.role }}">{{ target_user.get_role_display }}</span>
+                <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); margin: 0.25rem 0 0 0;">
+                    ✏️ Foydalanuvchini tahrirlash: {{ target_user.get_full_name|default:target_user.username }}
+                </h1>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 2px 0 0 0;">
+                    Login, shaxsiy ma’lumotlar va parolni yangilash.
+                </p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">Ism</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control" value="{{ target_user.first_name }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Familiya</label>
+                    <input type="text" name="last_name" id="last_name" class="form-control" value="{{ target_user.last_name }}">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="username">
+                        🔑 Login (Foydalanuvchi nomi) <span style="color:#dc2626;">*</span>
+                    </label>
+                    <input type="text" name="username" id="username" class="form-control" value="{{ target_user.username }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="new_password">
+                        🔒 Yangi parol (ixtiyoriy)
+                    </label>
+                    <input type="text" name="new_password" id="new_password" class="form-control" placeholder="O‘zgartirish uchun yozing" minlength="6">
+                    <small style="color: var(--text-muted); font-size: 0.74rem;">Bo‘sh qoldirilsa, eski parol o‘zgarmaydi.</small>
+                </div>
+            </div>
+
+            {% if target_user.is_student %}
+                <div class="form-group">
+                    <label class="form-label" for="classroom_id">Sinfga biriktirish</label>
+                    <select name="classroom_id" id="classroom_id" class="form-control">
+                        <option value="">-- Sinf belgilanmagan --</option>
+                        {% for c in classrooms %}
+                            <option value="{{ c.id }}" {% if user_classroom and user_classroom.id == c.id %}selected{% endif %}>
+                                {{ c.name }} (Mas'ul: {{ c.teacher.get_full_name|default:c.teacher.username }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+
+            {% if target_user.is_teacher %}
+                <div class="form-group">
+                    <label class="form-label" for="subject">O‘qitadigan fan</label>
+                    <input type="text" name="subject" id="subject" class="form-control" value="{{ target_user.subject }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bio">Pedagog haqida qisqa ma’lumot</label>
+                    <textarea name="bio" id="bio" rows="2" class="form-control">{{ target_user.bio }}</textarea>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="phone">Telefon raqami</label>
+                    <input type="text" name="phone" id="phone" class="form-control" value="{{ target_user.phone|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Elektron pochta</label>
+                    <input type="email" name="email" id="email" class="form-control" value="{{ target_user.email|default:'' }}">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <a href="{% url 'accounts:users_list' %}" class="btn btn-outline">Bekor qilish</a>
+                <button type="submit" class="btn btn-primary">
+                    💾 O‘zgarishlarni saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} - Dars tafsiloti{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        {% if user.is_teacher or user.is_admin_role %}
+            <a href="{% url 'lessons:list' %}" class="btn btn-outline btn-sm">← Darslar ro‘yxatiga qaytish</a>
+        {% else %}
+            <a href="{% url 'lessons:student_lessons' %}" class="btn btn-outline btn-sm">← Darslarimga qaytish</a>
+        {% endif %}
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem;">
+        {% if user.is_teacher or user.is_admin_role %}
+            <a href="{% url 'lessons:edit' lesson.id %}" class="btn btn-outline btn-sm">✏️ Tahrirlash</a>
+            <a href="{% url 'lessons:duplicate' lesson.id %}" class="btn btn-outline btn-sm">📋 Nusxa olish</a>
+        {% endif %}
+        <a href="{% url 'lessons:print' lesson.id %}" target="_blank" class="btn btn-primary btn-sm">🖨️ Chop etish ko‘rinishi</a>
+    </div>
+</div>
+
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+                <span class="role-pill {% if lesson.status == 'assigned' %}student{% else %}teacher{% endif %}">
+                    {{ lesson.get_status_display }}
+                </span>
+                <span style="font-size: 0.85rem; color: var(--accent); font-weight: 700;">
+                    {{ lesson.method.title }}
+                </span>
+            </div>
+            <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">
+                {{ lesson.title }}
+            </h1>
+        </div>
+        <div style="text-align: right; font-size: 0.9rem;">
+            <div><strong>Sinf:</strong> {{ lesson.classroom.name|default:"Biriktirilmagan" }}</div>
+            <div style="color: var(--text-muted);">Davomiyligi: <strong>{{ lesson.duration_minutes }} daqiqa</strong></div>
+        </div>
+    </div>
+
+    <!-- O'quv maqsadi va sharoit -->
+    <div class="grid grid-cols-2" style="margin-bottom: 1.5rem;">
+        <div style="background-color: #f8fafc; border-left: 3px solid var(--accent); padding: 1rem; border-radius: 4px;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">
+                🎯 Kuzatiladigan o‘quv maqsadi
+            </h4>
+            <p style="font-size: 0.92rem; color: #334155;">{{ lesson.learning_objective }}</p>
+        </div>
+
+        <div style="background-color: #f8fafc; border-left: 3px solid #64748b; padding: 1rem; border-radius: 4px;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">
+                🖥️ Mavjud qurilmalar va faoliyat formati
+            </h4>
+            <p style="font-size: 0.92rem; color: #334155;">
+                {{ lesson.available_equipment }} ({{ lesson.get_activity_type_display }})
+            </p>
+        </div>
+    </div>
+
+    <!-- Dars bosqichlari jadvali -->
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+        ⏱️ Dars bosqichlari va amaliy faoliyat
+    </h2>
+
+    <div class="table-responsive" style="margin-bottom: 1.5rem;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 20%;">Bosqich nomi</th>
+                    <th style="width: 8%;">Vaqt</th>
+                    <th style="width: 25%;">O‘qituvchi harakati</th>
+                    <th style="width: 25%;">O‘quvchi harakati</th>
+                    <th style="width: 17%;">Topshiriq va Mahsulot</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stage in lesson.stages.all %}
+                    <tr>
+                        <td><strong>{{ stage.order }}</strong></td>
+                        <td>
+                            <strong style="color: var(--primary);">{{ stage.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="role-pill teacher" style="font-size: 0.75rem;">{{ stage.duration_minutes }} daq</span>
+                        </td>
+                        <td style="font-size: 0.88rem; color: #334155;">
+                            {{ stage.teacher_action|linebreaksbr }}
+                        </td>
+                        <td style="font-size: 0.88rem; color: #0f172a;">
+                            {{ stage.student_action|linebreaksbr }}
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            {% if stage.task_description %}
+                                <div><strong>Vazifa:</strong> {{ stage.task_description }}</div>
+                            {% endif %}
+                            {% if stage.expected_product %}
+                                <div style="color: var(--accent); margin-top: 0.25rem;">
+                                    <strong>Natija:</strong> {{ stage.expected_product }}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                            Ushbu darsda hali bosqichlar mavjud emas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8fafc; font-weight: 700;">
+                    <td colspan="2" style="text-align: right;">Jami bosqichlar vaqti:</td>
+                    <td>{{ lesson.total_stages_duration }} daq</td>
+                    <td colspan="3">
+                        {% if lesson.is_time_balanced %}
+                            <span style="color: #059669;">✅ Dars vaqtiga to‘liq mos keladi ({{ lesson.duration_minutes }} daq)</span>
+                        {% else %}
+                            <span style="color: #d97706;">⚠️ Rejalashtirilgan vaqt: {{ lesson.duration_minutes }} daqiqa (farq: {{ lesson.time_diff }} daqiqa)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Laboratoriyaga tezkor o'tish tugmasi -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #115e59 100%); color: #fff; padding: 1.5rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem;">🔬 Interaktiv laboratoriyada tajriba o‘tkazish</h3>
+            <p style="font-size: 0.88rem; color: #ccfbf1;">O‘quvchilar algoritmik tajribalar va ma'lumotlar tahlili orqali amaliy bilim oladilar.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{% url 'labs:algorithms' %}" class="btn btn-accent">
+                ⚡ Algoritmlar laboratoriyasi
+            </a>
+            <a href="{% url 'labs:data_lab' %}" class="btn btn-outline" style="background:#fff; color:#0f172a;">
+                📊 Ma’lumotlar laboratoriyasi
+            </a>
+            <a href="{% url 'labs:scratch' %}" class="btn btn-outline" style="background:#ea580c; color:#fff; border-color:#ea580c;">
+                🐱 Scratch laboratoriyasi
+            </a>
+        </div>
+    </div>
+
+    <!-- Bug 5: Yagona o'quv zanjiri (Dars -> Tajriba -> Mahsulot topshirish -> Izoh -> Takomillashtirish) -->
+    {% if related_assignments %}
+    <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                    🚀 Amaliy loyiha va topshiriqlar zanjiri
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">
+                    Dars mazmuniga mos amaliy mahsulot yaratish, laboratoriya natijasini bog‘lash va portfoliosi
+                </p>
+            </div>
+            <span style="font-size: 0.8rem; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 999px; font-weight: 700;">
+                Sinf: {{ lesson.classroom.name }}
+            </span>
+        </div>
+
+        {% for assignment in related_assignments %}
+            <div style="background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <strong style="font-size: 1rem; color: var(--primary);">{{ assignment.project_template.title }}</strong>
+                        <span style="font-size: 0.8rem; margin-left: 0.5rem; color: #64748b;">
+                            {% if assignment.is_group_project %}👥 Guruhli loyiha{% else %}👤 Individual loyiha{% endif %}
+                        </span>
+                    </div>
+                    <a href="{% url 'projects:assignment_detail' assignment.id %}" class="btn btn-outline btn-sm">
+                        Loyiha xonasini ochish →
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" style="font-size: 0.88rem; margin-bottom: 0;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th style="width: 8%;">Dars #</th>
+                                <th style="width: 32%;">Topshiriq nomi</th>
+                                <th style="width: 25%;">Kutiladigan mahsulot</th>
+                                <th style="width: 15%;">Holati</th>
+                                <th style="width: 20%; text-align: right;">Harakat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for step in assignment.project_template.steps.all %}
+                                <tr>
+                                    <td><strong>{{ step.lesson_number }}</strong></td>
+                                    <td>
+                                        <strong>{{ step.title }}</strong>
+                                        <div style="font-size: 0.78rem; color: #64748b;">{{ step.short_description|truncatewords:8 }}</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-size: 0.82rem; color: #0f766e;">{{ step.deliverable_type }}</span>
+                                    </td>
+                                    <td>
+                                        {% if user.is_student %}
+                                            {% with sub=student_submissions_map|default_if_none:None %}
+                                                {# status tekshiruvi #}
+                                                <span class="role-pill student" style="font-size: 0.75rem;">Topshirishga tayyor</span>
+                                            {% endwith %}
+                                        {% else %}
+                                            <span style="color: #64748b; font-size: 0.8rem;">O‘quvchilar nazorati</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: right;">
+                                        {% if user.is_student %}
+                                            <a href="{% url 'projects:submit_step' assignment.id step.id %}" class="btn btn-primary btn-sm" style="font-size: 0.8rem;">
+                                                📤 Mahsulot topshirish
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'projects:assignment_detail' assignment.id %}" class="btn btn-outline btn-sm" style="font-size: 0.8rem;">
+                                                Ko‘rish
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

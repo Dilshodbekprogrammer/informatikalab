@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% block title %}Ma’lumotlar laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem;">
+    <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="role-pill teacher">Ma'lumotlar tahlili</span>
+                <span style="font-size: 0.8rem; background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                    ⚠️ Jadvaldagi 5 kunlik ma'lumotlar o‘quv namunasi (shartli ma'lumot) hisoblanadi
+                </span>
+            </div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">
+                📊 Maktabda elektr energiyasidan oqilona foydalanish
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Qurilmalar sarfini hisoblang, diagrammalar orqali tahlil qiling va tejamkorlik ssenariysini loyihalang
+            </p>
+        </div>
+
+        <!-- Nazorat namunasi tezkor tekshirish tugmasi -->
+        <button type="button" class="btn btn-outline btn-sm" onclick="loadBenchmarkCase()">
+            🎯 Nazorat misolini yuklash (100W × 5h × 2 = 1 kWh)
+        </button>
+    </div>
+
+    <!-- Formula haqida ma'lumot qutisi -->
+    <div style="background-color: #f0fdfa; border: 1px solid #99f6e4; padding: 0.85rem 1.1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.9rem; color: #115e59;">
+        <strong>📐 Hisoblash formulasi:</strong>
+        <code style="background: #ffffff; padding: 2px 6px; border-radius: 4px; font-weight: bold; border: 1px solid #ccfbf1;">
+            Energiya (kWh) = Quvvat (W) × Ishlash vaqti (soat) × Qurilmalar soni / 1000
+        </code>
+        <span style="margin-left: 0.75rem; color: #0f766e;">(Kuchsiz va manfiy qiymatlar qat'iy tekshiriladi)</span>
+    </div>
+
+    <!-- 1. Jadval: Elektr sarfi hisob-kitobi -->
+    <div class="table-responsive" style="margin-bottom: 1rem;">
+        <table class="table" id="energyTable">
+            <thead>
+                <tr>
+                    <th style="width: 14%;">Kun</th>
+                    <th style="width: 24%;">Qurilma nomi</th>
+                    <th style="width: 13%;">Quvvat (W)</th>
+                    <th style="width: 12%;">Soni (dona)</th>
+                    <th style="width: 15%;">Ishlash vaqti (soat)</th>
+                    <th style="width: 14%;">Sarf (kWh)</th>
+                    <th style="width: 8%;">Amal</th>
+                </tr>
+            </thead>
+            <tbody id="energyTableBody">
+                <!-- JS orqali to'ldiriladi -->
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8fafc; font-weight: 700; font-size: 0.95rem;">
+                    <td colspan="5" style="text-align: right; color: var(--primary);">Jami haftalik energiya sarfi:</td>
+                    <td id="totalEnergyCell" style="color: var(--accent); font-size: 1.05rem;">0.00 kWh</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+        <button type="button" class="btn btn-outline btn-sm" onclick="addNewRow()">
+            ➕ Yangi qator qo‘shish
+        </button>
+        <button type="button" class="btn btn-accent btn-sm" onclick="recalculateAll()">
+            🔄 Qayta hisoblash va diagrammani yangilash
+        </button>
+    </div>
+
+    <!-- 2. Diagramma va Tejash Ssenariysi -->
+    <div class="grid grid-cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Diagramma maydoni -->
+        <div class="card" style="margin-bottom: 0;">
+            <div class="card-header" style="margin-bottom: 0.5rem;">
+                <span class="card-title" style="font-size: 1.05rem;">Kunlar bo‘yicha elektr sarfi (Chart.js)</span>
+                <select id="chartTypeSelect" class="form-control" style="width: auto; padding: 2px 6px; font-size: 0.8rem;" onchange="renderEnergyChart()">
+                    <option value="bar">Ustunli grafik (Bar)</option>
+                    <option value="line">Chiziqli grafik (Line)</option>
+                </select>
+            </div>
+            <div style="position: relative; height: 260px; width: 100%; overflow: hidden; border-radius: var(--radius-sm);">
+                <canvas id="energyChartCanvas" style="width: 100%; height: 260px; display: block;"></canvas>
+            </div>
+        </div>
+
+        <!-- Tejash ssenariysi taqqoslash -->
+        <div class="card" style="margin-bottom: 0; background-color: #fafafa;">
+            <h3 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.5rem;">💡 Tejash ssenariysini modellashtirish</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                Agar qurilmalarning keraksiz ishlash vaqtini qisqartirsak, maktab elektr energiyasini qanchaga tejashi mumkin?
+            </p>
+
+            <div class="form-group">
+                <label class="form-label" style="display: flex; justify-content: space-between;">
+                    <span>Ishlash vaqtini qisqartirish (soat/kun):</span>
+                    <strong id="hoursReductionDisplay" style="color: var(--accent);">1.0 soat</strong>
+                </label>
+                <input type="range" id="reductionSlider" min="0" max="8" step="0.5" value="1.0" style="width: 100%; cursor: pointer;" oninput="calculateSavingsScenario()">
+            </div>
+
+            <!-- Taqqoslash hisoboti -->
+            <div style="background-color: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.88rem;">
+                    <span>Hozirgi umumiy sarf:</span>
+                    <strong id="currentSarfDisplay">0.00 kWh</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.88rem; color: #15803d;">
+                    <span>Optimallashgan yangi sarf:</span>
+                    <strong id="optimizedSarfDisplay">0.00 kWh</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px dashed var(--border-color); font-size: 0.95rem; font-weight: 700;">
+                    <span style="color: var(--primary);">Tejash samaradorligi:</span>
+                    <span id="savingsSummaryDisplay" style="color: var(--accent);">0.00 kWh (0%)</span>
+                </div>
+            </div>
+
+            <!-- Nazorat misoli tushuntirishi -->
+            <div id="benchmarkNotice" style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; background-color: #eff6ff; border-radius: 4px; font-size: 0.82rem; color: #1e40af; display: none;">
+                🎯 <strong>Nazorat misoli tasdiqlandi:</strong> 100W × 5h × 2 / 1000 = 1.0 kWh sarf. Vaqt 4 soatga tushirilganda 0.8 kWh sarf bo‘ldi va aniq <strong>0.2 kWh (20%)</strong> tejashga erishildi!
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Xulosa yozish va Loyihaga saqlash -->
+    <div class="card" style="border: 2px solid #e2e8f0;">
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">✍️ Xulosa va tavsiyalar</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+            Olingan hisob-kitoblar va diagramma asosida maktab ma'muriyati uchun elektr energiyasini tejash bo‘yicha xulosangizni bayon eting:
+        </p>
+
+        <div class="form-group">
+            <textarea id="dataLabExplanation" class="form-control" rows="3" placeholder="Masalan: Tahlil shuni ko‘rsatdiki, kompyuterlar va chiroqlar darsdan so‘ng o‘chirilganda haftasiga 20% gacha energiya tejaladi ..."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="saveDataLabExperiment()">
+            💾 Laboratoriya hisob-kitobi va xulosani saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    const initialRowsData = {{ default_data_json|safe }};
+    let currentRows = JSON.parse(JSON.stringify(initialRowsData));
+    let energyChart = null;
+
+    function renderTableRows() {
+        const tbody = document.getElementById('energyTableBody');
+        tbody.innerHTML = '';
+
+        currentRows.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="form-control form-control-sm row-day" style="font-size:0.85rem;" onchange="updateRowData(${index})">
+                        <option value="Dushanba" ${row.day === 'Dushanba' ? 'selected' : ''}>Dushanba</option>
+                        <option value="Seshanba" ${row.day === 'Seshanba' ? 'selected' : ''}>Seshanba</option>
+                        <option value="Chorshanba" ${row.day === 'Chorshanba' ? 'selected' : ''}>Chorshanba</option>
+                        <option value="Payshanba" ${row.day === 'Payshanba' ? 'selected' : ''}>Payshanba</option>
+                        <option value="Juma" ${row.day === 'Juma' ? 'selected' : ''}>Juma</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm row-device" value="${row.device}" oninput="updateRowData(${index})">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm row-power" value="${row.power}" min="1" max="10000" oninput="updateRowData(${index})">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm row-count" value="${row.count}" min="1" max="500" oninput="updateRowData(${index})">
+                </td>
+                <td>
+                    <input type="number" step="0.5" class="form-control form-control-sm row-hours" value="${row.hours}" min="0.1" max="24" oninput="updateRowData(${index})">
+                </td>
+                <td>
+                    <span class="row-kwh" style="font-weight:700; color:var(--primary); font-family:monospace;">0.00</span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(${index})" title="O‘chirish">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        recalculateAll();
+    }
+
+    function updateRowData(index) {
+        const rowsEl = document.querySelectorAll('#energyTableBody tr');
+        if (!rowsEl[index]) return;
+
+        const row = rowsEl[index];
+        const day = row.querySelector('.row-day').value;
+        const device = row.querySelector('.row-device').value.trim();
+        const powerStr = row.querySelector('.row-power').value.trim();
+        const countStr = row.querySelector('.row-count').value.trim();
+        const hoursStr = row.querySelector('.row-hours').value.trim();
+
+        // Xatoliklar nazorati (Bo'sh qiymatni nol deb qabul qilmaslik, manfiy qiymatlarni va 24h dan oshishni tekshirish)
+        if (powerStr === '' || countStr === '' || hoursStr === '') {
+            row.querySelector('.row-kwh').innerText = "Kiritilmagan";
+            row.querySelector('.row-kwh').style.color = '#ef4444';
+            currentRows[index] = {
+                id: currentRows[index] ? currentRows[index].id : Date.now(),
+                day: day,
+                device: device,
+                power: 0,
+                count: 0,
+                hours: 0,
+                hasError: true
+            };
+            updateTotalAndScenario();
+            return;
+        }
+
+        const power = parseFloat(powerStr);
+        const count = parseFloat(countStr);
+        const hours = parseFloat(hoursStr);
+
+        if (isNaN(power) || power <= 0 || isNaN(count) || count <= 0 || isNaN(hours) || hours <= 0 || hours > 24) {
+            row.querySelector('.row-kwh').innerText = "Xato qiymat";
+            row.querySelector('.row-kwh').style.color = '#ef4444';
+            currentRows[index] = {
+                id: currentRows[index] ? currentRows[index].id : Date.now(),
+                day: day,
+                device: device,
+                power: isNaN(power) ? 0 : power,
+                count: isNaN(count) ? 0 : count,
+                hours: isNaN(hours) ? 0 : hours,
+                hasError: true
+            };
+            updateTotalAndScenario();
+            return;
+        }
+
+        // To'g'ri qiymat
+        row.querySelector('.row-kwh').style.color = 'var(--primary)';
+        currentRows[index] = {
+            id: currentRows[index] ? currentRows[index].id : Date.now(),
+            day: day,
+            device: device,
+            power: power,
+            count: count,
+            hours: hours,
+            hasError: false
+        };
+
+        // Formula: quvvat * vaqt * soni / 1000
+        const kwh = (power * hours * count) / 1000;
+        row.querySelector('.row-kwh').innerText = kwh.toFixed(3);
+
+        updateTotalAndScenario();
+    }
+
+    function recalculateAll() {
+        const rowsEl = document.querySelectorAll('#energyTableBody tr');
+        rowsEl.forEach((_, idx) => updateRowData(idx));
+        renderEnergyChart();
+    }
+
+    function updateTotalAndScenario() {
+        let total = 0;
+        const rowsEl = document.querySelectorAll('#energyTableBody tr');
+        rowsEl.forEach(tr => {
+            const val = parseFloat(tr.querySelector('.row-kwh').innerText);
+            if (!isNaN(val)) total += val;
+        });
+
+        document.getElementById('totalEnergyCell').innerText = total.toFixed(2) + " kWh";
+        document.getElementById('currentSarfDisplay').innerText = total.toFixed(2) + " kWh";
+
+        calculateSavingsScenario();
+    }
+
+    function calculateSavingsScenario() {
+        const reductionHours = parseFloat(document.getElementById('reductionSlider').value) || 0;
+        document.getElementById('hoursReductionDisplay').innerText = reductionHours.toFixed(1) + " soat";
+
+        let currentTotal = 0;
+        let optimizedTotal = 0;
+
+        currentRows.forEach(r => {
+            if (r.power && r.count && r.hours) {
+                const cur = (r.power * r.hours * r.count) / 1000;
+                currentTotal += cur;
+
+                // Yangi qisqartirilgan soat (kamida 0 bo'ladi)
+                const optHours = Math.max(0, r.hours - reductionHours);
+                const opt = (r.power * optHours * r.count) / 1000;
+                optimizedTotal += opt;
+            }
+        });
+
+        const savedKwh = currentTotal - optimizedTotal;
+        // Boshlang'ich sarf nol bo'lsa nolga bo'lish xatosini (ZeroDivisionError) oldini olish
+        let savingPercent = 0;
+        if (currentTotal > 0) {
+            savingPercent = (savedKwh / currentTotal) * 100;
+        }
+
+        document.getElementById('optimizedSarfDisplay').innerText = optimizedTotal.toFixed(2) + " kWh";
+        document.getElementById('savingsSummaryDisplay').innerText = `${savedKwh.toFixed(2)} kWh (${savingPercent.toFixed(1)}%)`;
+
+        // Nazorat namunasi tekshiruvi (100W, 2 dona, 5h -> 4h tushirilsa: 0.2 kWh, 20%)
+        const isBenchmark = (currentRows.length === 1 && currentRows[0].power === 100 && currentRows[0].count === 2 && currentRows[0].hours === 5 && reductionHours === 1);
+        const notice = document.getElementById('benchmarkNotice');
+        if (isBenchmark) {
+            notice.style.display = 'block';
+        } else {
+            notice.style.display = 'none';
+        }
+    }
+
+    function addNewRow() {
+        currentRows.push({
+            id: Date.now(),
+            day: "Dushanba",
+            device: "Yangi qurilma",
+            power: 100,
+            count: 1,
+            hours: 4.0
+        });
+        renderTableRows();
+    }
+
+    function removeRow(index) {
+        if (currentRows.length <= 1) {
+            alert("Kamida bitta qator bo‘lishi lozim!");
+            return;
+        }
+        currentRows.splice(index, 1);
+        renderTableRows();
+    }
+
+    function loadBenchmarkCase() {
+        currentRows = [
+            { id: 1, day: "Dushanba", device: "Nazorat namunasi (Kompyuter sinfi chiroqlari)", power: 100, count: 2, hours: 5.0 }
+        ];
+        document.getElementById('reductionSlider').value = 1.0;
+        renderTableRows();
+        alert("🎯 Nazorat misoli yuklandi: 100 W × 5 soat × 2 / 1000 = 1.0 kWh. 1 soat qisqartirilsa 4 soatda 0.8 kWh sarf bo‘ladi va aniq 20% tejaladi!");
+    }
+
+    function renderEnergyChart() {
+        const canvas = document.getElementById('energyChartCanvas');
+        const chartType = document.getElementById('chartTypeSelect').value;
+
+        // Kunlar bo'yicha guruhlash
+        const dayTotals = { 'Dushanba': 0, 'Seshanba': 0, 'Chorshanba': 0, 'Payshanba': 0, 'Juma': 0 };
+        currentRows.forEach(r => {
+            if (dayTotals[r.day] !== undefined && r.power && r.count && r.hours) {
+                dayTotals[r.day] += (r.power * r.hours * r.count) / 1000;
+            }
+        });
+
+        const labels = Object.keys(dayTotals);
+        const dataValues = Object.values(dayTotals).map(v => parseFloat(v.toFixed(2)));
+
+        if (energyChart) {
+            energyChart.destroy();
+        }
+
+        energyChart = new Chart(canvas, {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Kunlik elektr sarfi (kWh)',
+                    data: dataValues,
+                    backgroundColor: chartType === 'bar' ? '#0d9488' : '#38bdf8',
+                    borderColor: '#0f766e',
+                }]
+            }
+        });
+    }
+
+    function saveDataLabExperiment() {
+        // DOM dagi barcha qatorlarni qaytadan tekshirish (Bug 3 himoyasi)
+        const rowsEl = document.querySelectorAll('#energyTableBody tr');
+        let hasValidationError = false;
+        let validationMsg = "";
+        const collectedRows = [];
+
+        rowsEl.forEach((row, idx) => {
+            const day = row.querySelector('.row-day').value;
+            const device = row.querySelector('.row-device').value.trim();
+            const powerStr = row.querySelector('.row-power').value.trim();
+            const countStr = row.querySelector('.row-count').value.trim();
+            const hoursStr = row.querySelector('.row-hours').value.trim();
+
+            const power = parseFloat(powerStr);
+            const count = parseFloat(countStr);
+            const hours = parseFloat(hoursStr);
+
+            if (!device) {
+                hasValidationError = true;
+                validationMsg = `${idx + 1}-qatorda qurilma nomi kiritilmagan!`;
+            } else if (isNaN(power) || power <= 0) {
+                hasValidationError = true;
+                validationMsg = `${idx + 1}-qator (${device}): Quvvat musbat son bo‘lishi kerak!`;
+            } else if (isNaN(count) || count <= 0) {
+                hasValidationError = true;
+                validationMsg = `${idx + 1}-qator (${device}): Soni musbat butun son bo‘lishi kerak!`;
+            } else if (isNaN(hours) || hours <= 0 || hours > 24) {
+                hasValidationError = true;
+                validationMsg = `${idx + 1}-qator (${device}): Ishlash vaqti 0 dan 24 soatgacha bo‘lishi shart! (Kiritilgan: ${hoursStr})`;
+            }
+
+            collectedRows.push({
+                day: day,
+                device: device,
+                power: isNaN(power) ? 0 : power,
+                count: isNaN(count) ? 0 : count,
+                hours: isNaN(hours) ? 0 : hours
+            });
+        });
+
+        if (hasValidationError) {
+            alert("⚠️ " + validationMsg + "\nIltimos, jadvaldagi xato qiymatlarni to‘g‘rilang va qayta saqlang!");
+            return;
+        }
+
+        const explanation = document.getElementById('dataLabExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni yozing!");
+            document.getElementById('dataLabExplanation').focus();
+            return;
+        }
+
+        currentRows = collectedRows;
+        let totalKwh = 0;
+        currentRows.forEach(r => {
+            if (r.power && r.count && r.hours) totalKwh += (r.power * r.hours * r.count) / 1000;
+        });
+
+        const reduction = parseFloat(document.getElementById('reductionSlider').value) || 0;
+        const savedText = document.getElementById('savingsSummaryDisplay').innerText;
+
+        const payload = {
+            lab_type: 'data',
+            title: "Elektr energiyasidan oqilona foydalanish tahlili",
+            input_data: { rows: currentRows },
+            prediction: `Vaqtni ${reduction} soat qisqartirib tejash`,
+            calculated_result: `Jami sarf: ${totalKwh.toFixed(2)} kWh | Tejash natijasi: ${savedText}`,
+            student_explanation: explanation,
+            additional_data: {
+                total_kwh: totalKwh.toFixed(2),
+                reduction_hours: reduction,
+                savings_text: savedText
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ " + data.message);
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Tarmoq xatosi yoki saqlashda muammo yuz berdi.");
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTableRows();
+    });
+</script>
+{% endblock %}

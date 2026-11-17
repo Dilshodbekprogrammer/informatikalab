@@ -1,0 +1,1362 @@
+{% extends 'base.html' %}
+{% block title %}Scratch - Vizual Blokli Dasturlash va Geometrik Shakllar Laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#e0f2fe; color:#0369a1; font-weight:700;">
+            🐱 Scratch 3.0 uslubidagi vizual algoritmlar va shakllar laboratoriyasi
+        </span>
+    </div>
+</div>
+
+<!-- Scratch Sarlavhasi -->
+<div class="card" style="margin-bottom: 1rem; padding: 1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #ea580c; color: #fff; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">🐱</span>
+                Scratch Vizual Blokli Dasturlash va Geometrik Shakllar Laboratoriyasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                O‘quvchilar uchun <strong>qadamma-qadam yo‘naltiruvchi shakllar ustaxonasi</strong>, matematik burchaklar kalkulyatori va sikl algoritmlari.
+            </p>
+        </div>
+
+        <!-- Ijro paneli -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <div style="display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-sm" id="btnGreenFlag" onclick="runScratchProgram()" style="background:#16a34a; color:#fff; font-weight:700; box-shadow: 0 1px 3px rgba(22,163,74,0.3);" title="Dasturni ishga tushirish">
+                    🏁 Boshlash
+                </button>
+                <button type="button" class="btn btn-sm" id="btnStop" onclick="stopScratchProgram()" style="background:#dc2626; color:#fff; font-weight:700;" title="To‘xtatish">
+                    🛑 To‘xtatish
+                </button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="resetStage()" title="Sahnani va qalamni tozalash">
+                    🔄 Sahnani tozalash
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ MAXSUS O‘QUV BO‘LIMI: GEOMETRIK SHAKLLAR VA OLTIBURCHAK USTAXONASI (Polygon Wizard) -->
+<div class="card" style="margin-bottom: 1.25rem; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 2px solid #86efac; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.5rem;">🪄</span>
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: #166534; margin: 0;">
+                    Geometrik Shakllar va Oltiburchak Konstruktori (O‘quvchi yordamchisi)
+                </h3>
+                <p style="font-size: 0.82rem; color: #15803d; margin: 0;">
+                    O‘quvchilar qiynalmasligi uchun shaklni tanlang — tizim formulani tushuntirib, bloklar zanjirini avtomatik tuzib beradi!
+                </p>
+            </div>
+        </div>
+        <span class="role-pill teacher" style="background: #bbf7d0; color: #14532d; font-weight: 700;">
+            9-sinf Geometriya + Informatika integratsiyasi
+        </span>
+    </div>
+
+    <!-- Tezkor shakl tanlash tugmalari -->
+    <div style="display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.85rem;">
+        <button type="button" class="btn btn-sm" id="btnShapeHexagon" onclick="selectShapePreset('hexagon')" style="background:#16a34a; color:#fff; font-weight:800; border: 1px solid #15803d; padding: 5px 12px;">
+            ⬡ 1. Oltiburchak (Hexagon - 6 burchak) ⭐
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeTriangle" onclick="selectShapePreset('triangle')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            📐 2. Uchburchak (3 burchak)
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeSquare" onclick="selectShapePreset('square')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            ⏹️ 3. Kvadrat (4 burchak)
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeStar" onclick="selectShapePreset('star')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            ⭐ 4. Beshqirrali Yulduz
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeOctagon" onclick="selectShapePreset('octagon')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            🛑 5. Sakkizburchak (8 burchak)
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeCircle" onclick="selectShapePreset('circle')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            ⭕ 6. Doira (36 burchak)
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnShapeSpiral" onclick="selectShapePreset('spiral')" style="background:#fff; font-weight:700; padding: 5px 10px;">
+            🌀 7. Rangli Spiral
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="selectShapePreset('empty')" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b; font-weight:700; padding: 5px 10px;" title="Noldan toza boshlash">
+            ✨ Bo‘sh toza maydon
+        </button>
+    </div>
+
+    <!-- Interaktiv Slayder va Jonli Matematik Formula Paneli -->
+    <div style="background: #ffffff; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 1rem; align-items: center;">
+        
+        <!-- 1. Burchaklar slayderi -->
+        <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.84rem; font-weight: 700; color: #166534; margin-bottom: 0.35rem;">
+                <span>Burchaklar soni (N):</span>
+                <span id="sliderSidesVal" style="background:#dcfce7; padding:1px 8px; border-radius:4px; font-size:0.9rem; color:#14532d;">6 ta (Oltiburchak)</span>
+            </div>
+            <input type="range" id="sidesSlider" min="3" max="12" value="6" step="1" style="width: 100%; cursor: pointer;" oninput="onSidesSliderChange(this.value)">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                <span>3 (Uchburchak)</span>
+                <span>6 (Oltiburchak)</span>
+                <span>8</span>
+                <span>12</span>
+            </div>
+        </div>
+
+        <!-- 2. Matematik Formula doskasi -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.85rem; font-size: 0.82rem;">
+            <div style="color: #475569; font-weight: 700; margin-bottom: 2px;">
+                📐 Matematik qonuniyat (Tashqi burilish burchagi):
+            </div>
+            <div style="font-family: monospace; font-size: 0.92rem; color: #0f172a; font-weight: 700;">
+                Burchak = 360° ÷ N = <span id="formulaDetailText" style="color: #16a34a; background:#e0f2fe; padding:2px 6px; border-radius:4px;">360° ÷ 6 = 60°</span>
+            </div>
+            <div id="formulaExplainNote" style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">
+                💡 Sprait to‘liq yopiq oltiburchak chizishi uchun har bir tomondan so‘ng <strong>60 gradusga</strong> burilishi lozim!
+            </div>
+        </div>
+
+        <!-- 3. Harakatga chaqiruvchi tugma -->
+        <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+            <button type="button" class="btn btn-sm" onclick="applyPolygonToWorkspace()" style="background:#16a34a; color:#fff; font-weight:800; white-space:nowrap; padding: 6px 12px;">
+                🪄 Ishchi maydonga o‘tkazish
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="applyPolygonAndRun()" style="font-weight:700; font-size: 0.78rem; white-space:nowrap; padding: 4px 10px;">
+                ⚡ Darhol chizish (Demo)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Asosiy Scratch Ishchi Maydoni (3 ustunli) -->
+<div class="grid" style="grid-template-columns: 280px 1fr 490px; gap: 1rem; margin-bottom: 1.5rem; align-items: start;">
+    
+    <!-- 1-USTUN: Bloklar palitrasi (Blocks Palette) -->
+    <div class="card" id="paletteColumn" style="padding: 0.85rem; height: 630px; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: var(--primary);">
+                🧩 Bloklar palitrasi
+            </div>
+            <span style="font-size: 0.75rem; color: #64748b;">(Qo‘shish uchun bosing)</span>
+        </div>
+
+        <!-- Kategoriya tanlagich -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 0.75rem;">
+            <button type="button" class="scratch-cat-btn active" onclick="switchCategory('motion')" style="border-left: 3px solid #2563eb;">🔵 Harakat</button>
+            <button type="button" class="scratch-cat-btn" onclick="switchCategory('looks')" style="border-left: 3px solid #9333ea;">🟣 Ko‘rinish</button>
+            <button type="button" class="scratch-cat-btn" onclick="switchCategory('pen')" style="border-left: 3px solid #0d9488;">🟢 Qalam</button>
+            <button type="button" class="scratch-cat-btn" onclick="switchCategory('control')" style="border-left: 3px solid #ea580c;">🟠 Boshqaruv</button>
+            <button type="button" class="scratch-cat-btn" onclick="switchCategory('sound')" style="border-left: 3px solid #db2777; grid-column: span 2;">🎵 Tovush va Ovoz</button>
+        </div>
+
+        <!-- Bloklar ro'yxati -->
+        <div id="paletteBlocksContainer" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 0.45rem;">
+            <!-- JS orqali to'ldiriladi -->
+        </div>
+    </div>
+
+    <!-- 2-USTUN: Skriptlar ishchi maydoni (Workspace) -->
+    <div class="card" id="workspaceColumn" style="padding: 0.85rem; height: 630px; display: flex; flex-direction: column; background: #fafafa;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; margin-bottom: 0.6rem;">
+            <div>
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--primary);">
+                    📜 Skript ishchi maydoni (<span id="blockCountBadge">0 ta blok</span>)
+                </div>
+                <div style="font-size: 0.74rem; color: #64748b;" id="currentProjectBadge">
+                    Loyiha: <strong>Oltiburchak algoritmi</strong>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.35rem;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearWorkspace()" style="font-size: 0.75rem; padding: 2px 8px; color: #dc2626;" title="Barcha bloklarni o‘chirish">
+                    🗑️ Tozalash
+                </button>
+            </div>
+        </div>
+
+        <!-- O'quvchi uchun mustaqil tahrirlash va qalam ogohlantiruvchi indikatorlari -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 4px 8px; font-size: 0.76rem; color: #166534; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
+            <span>✍️ <strong>Mustaqil tahrirlash:</strong> Maydondagi har bir sonni o‘zgartirishingiz yoki chapdan yangi bloklar qo‘shishingiz mumkin.</span>
+            <button type="button" class="btn btn-outline btn-sm" onclick="selectShapePreset('empty')" style="font-size: 0.7rem; padding: 1px 6px; background: #fff; color: #15803d; border-color: #86efac;" title="Barcha bloklarni tozalab noldan o‘zingiz terishingiz uchun">
+                ✨ Noldan o‘zim teraman
+            </button>
+        </div>
+
+        <div id="penWarningBox" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 4px 8px; font-size: 0.76rem; color: #991b1b; margin-bottom: 0.5rem;">
+            ⚠️ <strong>Eslatma:</strong> Qalam tushirilmagan bo‘lsa chizilmaydi! Skript boshiga <em>"qalamni tushirish"</em> bloki qo‘yilganligini tekshiring.
+        </div>
+
+        <!-- Yig'ilgan bloklar zanjiri -->
+        <div id="workspaceStack" style="flex: 1; overflow-y: auto; padding: 0.5rem; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 0.4rem;">
+            <!-- JS orqali to'ldiriladi -->
+        </div>
+    </div>
+
+    <!-- 3-USTUN: Sahna (Stage Canvas 480x360) va Holat -->
+    <div class="card" style="padding: 0.85rem; height: 630px; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; margin-bottom: 0.6rem;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: var(--primary);">
+                🖥️ Sahna (480 × 360)
+            </div>
+            <div style="font-size: 0.8rem; font-family: monospace; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
+                x: <span id="statX">0</span> | y: <span id="statY">0</span> | <span id="statDir">90</span>°
+            </div>
+        </div>
+
+        <!-- Canvas sahnasi -->
+        <div id="stageWrapper" style="position: relative; width: 480px; height: 360px; margin: 0 auto; background: #ffffff; border: 2px solid #cbd5e1; border-radius: var(--radius-sm); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); cursor: crosshair;">
+            <!-- Qalam va rasm chizish qatlami -->
+            <canvas id="penCanvas" width="480" height="360" style="position: absolute; top:0; left:0; z-index: 1;"></canvas>
+            <!-- Sprait harakati qatlami -->
+            <canvas id="spriteCanvas" width="480" height="360" style="position: absolute; top:0; left:0; z-index: 2;"></canvas>
+            <!-- Nutq pufagi (Speech Bubble) -->
+            <div id="speechBubble" style="display: none; position: absolute; z-index: 3; background: #fff; border: 2px solid #334155; border-radius: 12px; padding: 6px 12px; font-size: 0.85rem; font-weight: 700; color: #0f172a; box-shadow: var(--shadow-sm); max-width: 180px; pointer-events: none;">
+                Salom!
+            </div>
+        </div>
+
+        <!-- Sprait va Qalam holati paneli -->
+        <div style="margin-top: 0.75rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.6rem; font-size: 0.82rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span><strong>Sprait:</strong> 🐱 Mushukcha (Sprite1)</span>
+                <span><strong>Qalam holati:</strong> <span id="penStatusLabel" style="color:#16a34a; font-weight:700;">Tushirilgan (chizmoqda)</span></span>
+            </div>
+            <div style="margin-top: 0.35rem; display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.78rem;">
+                <span>Ijro holati: <strong id="executionStatusLabel" style="color:#16a34a;">Tayyor</strong></span>
+                <span>Chizilayotgan tomon: <strong id="currentSideLabel" style="color:#2563eb;">-</strong></span>
+            </div>
+        </div>
+
+        <!-- O‘quvchi uchun qadamma-qadam darslik yordamchisi -->
+        <div style="margin-top: 0.6rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.78rem;">
+            <div style="font-weight: 800; color: #1e40af; margin-bottom: 2px;">
+                💡 9-sinf darsi: Oltiburchak qanday chiziladi?
+            </div>
+            <ol style="margin: 0; padding-left: 1.2rem; color: #1e3a8a; line-height: 1.4;">
+                <li>Qalamni tushirish (aks holda chiziq ko‘rinmaydi);</li>
+                <li><strong>6 marta takrorlash</strong> (sikl) blokini qo‘yish;</li>
+                <li>Har bir tomonda <strong>60 qadam</strong> yurish;</li>
+                <li>Tashqi burchak formulasi: <strong>360° ÷ 6 = 60°</strong> burilish!</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Xulosa Formasi (Tahlil va Gipoteza) -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Scratch algoritmi natijasini tahlil qilish va portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Mustaqil kiritgan qadamlaringiz qanday natija berganini tahlil qiling: oldingi taxminingiz bilan solishtiring va xulosa yozing.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="scratchPrediction" class="form-control" placeholder="Masalan: 6 marta 60 gradusga burilib 60 qadam yursa, muntazam oltiburchak hosil bo‘ladi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Natija tahlili) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="scratchExplanation" class="form-control" placeholder="Masalan: Tashqi burilish burchagi to‘g‘ri (60°) tanlangani sababli barcha tomonlar birlashib yopiq shakl hosil bo‘ldi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="saveScratchExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Scratch bloklari uslubi */
+    .scratch-cat-btn {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        padding: 5px 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: left;
+    }
+    .scratch-cat-btn.active {
+        background: #f1f5f9;
+        font-weight: 800;
+    }
+
+    .scratch-block {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border-radius: 6px;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.1s ease, filter 0.1s ease;
+    }
+    .scratch-block:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
+    }
+
+    /* Bloklar toifalari bo'yicha Scratch ranglari */
+    .block-motion { background-color: #2563eb; }    /* Moviy */
+    .block-looks { background-color: #9333ea; }     /* Siyohrang */
+    .block-pen { background-color: #0d9488; }       /* Zumrad/Teal */
+    .block-control { background-color: #ea580c; }   /* Qaymoqrang/Apelsin */
+    .block-sound { background-color: #db2777; }     /* Pushti / Magenta */
+
+    .block-input {
+        background: #ffffff;
+        color: #0f172a;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-align: center;
+        width: 48px;
+    }
+
+    /* Standart blok elementi */
+    .workspace-block-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 10px;
+        color: #ffffff;
+        border-radius: 6px;
+        font-size: 0.84rem;
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        animation: blockSlide 0.15s ease;
+    }
+    @keyframes blockSlide {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .workspace-block-item.executing {
+        outline: 3px solid #facc15;
+        box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
+    }
+
+    /* Sikl C-bloki (Takrorlash ramkasi) */
+    .loop-container {
+        border: 2px solid #ea580c;
+        border-radius: 8px;
+        background: #fff7ed;
+        padding: 6px 8px;
+        margin: 4px 0;
+    }
+    .loop-header {
+        background: #ea580c;
+        color: #ffffff;
+        font-weight: 800;
+        padding: 6px 10px;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.84rem;
+    }
+    .loop-body {
+        margin-left: 12px;
+        padding-left: 8px;
+        border-left: 4px solid #ea580c;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .block-action-btn {
+        background: rgba(0,0,0,0.22);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.1s ease;
+    }
+    .block-action-btn:hover {
+        background: rgba(0,0,0,0.45);
+    }
+    .block-action-btn.btn-delete:hover {
+        background: rgba(220, 38, 38, 0.85);
+    }
+</style>
+
+<script>
+    // ==========================================
+    // INFORMATIKALAB SCRATCH ENGINE & POLYGON WIZARD
+    // ==========================================
+
+    const STAGE_WIDTH = 480;
+    const STAGE_HEIGHT = 360;
+
+    let penCanvas, penCtx;
+    let spriteCanvas, spriteCtx;
+
+    // Sprait holati
+    let sprite = {
+        x: 0,
+        y: 0,
+        direction: 90,     // 90 = o'ngga, 0 = tepaga, 180 = pastga, -90 = chapga
+        size: 100,         // %
+        visible: true,
+        sayText: "",
+        sayTimer: null,
+        isPenDown: true,   // Boshlang'ich qalam holati: Tushirilgan (o'quvchi xatosini oldini olish uchun)
+        penColor: "#16a34a",
+        penSize: 3
+    };
+
+    let isRunning = false;
+    let executionAborted = false;
+    let scriptBlocks = [];
+
+    // Oltiburchak va Muntazam ko'pburchaklar sozlamalari
+    let currentPolygon = {
+        sides: 6,
+        name: "Oltiburchak (Hexagon)",
+        stepLength: 60,
+        color: "#16a34a"
+    };
+
+    // Audio Context (Lokal sintezator)
+    let audioCtx = null;
+    function getAudioContext() {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function playBeepSound(freq = 440, duration = 0.15) {
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + duration);
+        } catch (e) {}
+    }
+
+    // Mavjud Scratch bloklari lug'ati
+    const BLOCKS_DEF = {
+        // Harakat (Motion)
+        move_steps: { cat: 'motion', label: 'qadam yurish', defaultVal: 60, type: 'number' },
+        turn_right: { cat: 'motion', label: 'gradus o‘ngga burilish ↻', defaultVal: 60, type: 'number' },
+        turn_left: { cat: 'motion', label: 'gradus chapga burilish ↺', defaultVal: 60, type: 'number' },
+        goto_xy: { cat: 'motion', label: 'markazga borish (x:0, y:0)', type: 'simple' },
+        bounce_edge: { cat: 'motion', label: 'chegaraga yetganda qaytish', type: 'simple' },
+
+        // Ko'rinish (Looks)
+        say_text: { cat: 'looks', label: 'deb aytish (1.5 soniya)', defaultVal: 'Oltiburchak tayyor!', type: 'text' },
+        change_size: { cat: 'looks', label: 'o‘lchamini o‘zgartirish (%)', defaultVal: 100, type: 'number' },
+        show_sprite: { cat: 'looks', label: 'spraitni ko‘rsatish', type: 'simple' },
+        hide_sprite: { cat: 'looks', label: 'spraitni yashirish', type: 'simple' },
+
+        // Qalam (Pen)
+        pen_down: { cat: 'pen', label: 'qalamni tushirish (chizish)', type: 'simple' },
+        pen_up: { cat: 'pen', label: 'qalamni ko‘tarish', type: 'simple' },
+        clear_pen: { cat: 'pen', label: 'chizilganlarni tozalash', type: 'simple' },
+        set_color: { cat: 'pen', label: 'qalam rangi', defaultVal: '#16a34a', type: 'color' },
+        set_pen_size: { cat: 'pen', label: 'qalam qalinligi (px)', defaultVal: 3, type: 'number' },
+        random_color: { cat: 'pen', label: 'tasodifiy rang tanlash 🌈', type: 'simple' },
+
+        // Boshqaruv (Control)
+        repeat_n: { cat: 'control', label: 'marta takrorlash (sikl)', defaultVal: 6, type: 'repeat' },
+        wait_sec: { cat: 'control', label: 'soniya kutish', defaultVal: 0.18, type: 'number' },
+
+        // Ovoz (Sound)
+        sound_beep: { cat: 'sound', label: 'musiqiy signal (beep) 🎵', type: 'simple' },
+        sound_meow: { cat: 'sound', label: 'mushukcha ovozi (meow) 🐱', type: 'simple' }
+    };
+
+    // Sahifa yuklanganda ishga tushirish
+    document.addEventListener('DOMContentLoaded', () => {
+        penCanvas = document.getElementById('penCanvas');
+        penCtx = penCanvas.getContext('2d');
+
+        spriteCanvas = document.getElementById('spriteCanvas');
+        spriteCtx = spriteCanvas.getContext('2d');
+
+        switchCategory('motion');
+        resetStage();
+
+        // Boshlang'ich holatda Oltiburchak (Hexagon) ni yuklaymiz
+        selectShapePreset('hexagon');
+    });
+
+    // Slayder o'zgarganda hisoblash
+    function onSidesSliderChange(sides) {
+        sides = parseInt(sides);
+        currentPolygon.sides = sides;
+        const angle = (360 / sides).toFixed(sides === 7 || sides === 9 || sides === 11 ? 1 : 0);
+
+        const names = {
+            3: "Muntazam Uchburchak",
+            4: "Kvadrat (To‘rtburchak)",
+            5: "Muntazam Beshburchak",
+            6: "Muntazam Oltiburchak (Hexagon)",
+            7: "Yettiburchak",
+            8: "Muntazam Sakkizburchak",
+            9: "To‘qqizburchak",
+            10: "O‘nburchak",
+            12: "O‘n ikkiburchak"
+        };
+        const shapeName = names[sides] || `${sides}-burchak`;
+        currentPolygon.name = shapeName;
+
+        // Tomon uzunligi: burchaklar ko'paygan sari shakl sahnadan chiqmasligi uchun moslashadi
+        currentPolygon.stepLength = Math.round(360 / sides * 1.05);
+        if (sides === 3) currentPolygon.stepLength = 120;
+        if (sides === 4) currentPolygon.stepLength = 90;
+        if (sides === 5) currentPolygon.stepLength = 70;
+        if (sides === 6) currentPolygon.stepLength = 60;
+        if (sides === 8) currentPolygon.stepLength = 45;
+        if (sides >= 10) currentPolygon.stepLength = 32;
+
+        document.getElementById('sliderSidesVal').innerText = `${sides} ta (${shapeName})`;
+        document.getElementById('formulaDetailText').innerText = `360° ÷ ${sides} = ${angle}°`;
+        document.getElementById('formulaExplainNote').innerHTML = `💡 <strong>${shapeName}</strong> hosil bo‘lishi uchun sprait ${sides} marta <strong>${angle} gradusga</strong> burilishi kerak!`;
+    }
+
+    // Shaklni ishchi maydonga o'tkazish
+    function applyPolygonToWorkspace() {
+        const sides = currentPolygon.sides;
+        const angle = Math.round(360 / sides * 10) / 10;
+        const step = currentPolygon.stepLength;
+
+        resetStage();
+        scriptBlocks = [];
+
+        // 1. Tayyorgarlik bloklari (qalam tushiriladi va rang tanlanadi)
+        addBlockToWorkspace('clear_pen');
+        addBlockToWorkspace('goto_xy');
+        addBlockToWorkspace('pen_down');
+        addBlockToWorkspace('set_color', currentPolygon.color || '#16a34a');
+        addBlockToWorkspace('set_pen_size', 3);
+
+        // 2. Sikl bloki (Takrorlash)
+        addBlockToWorkspace('repeat_n', sides);
+        addBlockToWorkspace('move_steps', step);
+        addBlockToWorkspace('turn_right', angle);
+        addBlockToWorkspace('sound_beep');
+        addBlockToWorkspace('wait_sec', 0.15);
+
+        // 3. Yakuniy blok
+        addBlockToWorkspace('say_text', `${currentPolygon.name} tayyor!`);
+
+        // Gipoteza va xulosani to'ldirish
+        document.getElementById('scratchPrediction').value = `${sides} marta ${step} qadam yurib ${angle} gradusga burilsa, ${currentPolygon.name} shakli chiziladi.`;
+        document.getElementById('scratchExplanation').value = `Muntazam ko‘pburchak tashqi burchagi formulasi (360° / ${sides} = ${angle}°) asosida sikl ${sides} marta takrorlanib, yopiq ${currentPolygon.name} shakli hosil bo‘ldi.`;
+
+        document.getElementById('currentProjectBadge').innerHTML = `Loyiha: <strong>${currentPolygon.name}</strong>`;
+        renderWorkspace();
+
+        // Tugmani chiroyli ko'rsatish
+        const btn = document.getElementById('btnGreenFlag');
+        btn.focus();
+    }
+
+    function applyPolygonAndRun() {
+        applyPolygonToWorkspace();
+        setTimeout(() => {
+            runScratchProgram();
+        }, 200);
+    }
+
+    // Tayyor shakl shablonlari
+    function selectShapePreset(key) {
+        document.querySelectorAll('#btnShapeHexagon, #btnShapeTriangle, #btnShapeSquare, #btnShapeStar, #btnShapeOctagon, #btnShapeCircle, #btnShapeSpiral').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-outline');
+            b.style.background = '#fff';
+            b.style.color = '';
+        });
+
+        if (key === 'hexagon') {
+            const btn = document.getElementById('btnShapeHexagon');
+            btn.style.background = '#16a34a';
+            btn.style.color = '#fff';
+            document.getElementById('sidesSlider').value = 6;
+            currentPolygon.color = '#16a34a';
+            onSidesSliderChange(6);
+            applyPolygonToWorkspace();
+        } else if (key === 'triangle') {
+            const btn = document.getElementById('btnShapeTriangle');
+            btn.style.background = '#2563eb';
+            btn.style.color = '#fff';
+            document.getElementById('sidesSlider').value = 3;
+            currentPolygon.color = '#2563eb';
+            onSidesSliderChange(3);
+            applyPolygonToWorkspace();
+        } else if (key === 'square') {
+            const btn = document.getElementById('btnShapeSquare');
+            btn.style.background = '#0284c7';
+            btn.style.color = '#fff';
+            document.getElementById('sidesSlider').value = 4;
+            currentPolygon.color = '#0284c7';
+            onSidesSliderChange(4);
+            applyPolygonToWorkspace();
+        } else if (key === 'star') {
+            const btn = document.getElementById('btnShapeStar');
+            btn.style.background = '#ea580c';
+            btn.style.color = '#fff';
+            resetStage();
+            scriptBlocks = [];
+            addBlockToWorkspace('clear_pen');
+            addBlockToWorkspace('pen_down');
+            addBlockToWorkspace('set_color', '#f59e0b');
+            addBlockToWorkspace('set_pen_size', 3);
+            addBlockToWorkspace('repeat_n', 5);
+            addBlockToWorkspace('move_steps', 120);
+            addBlockToWorkspace('turn_right', 144);
+            addBlockToWorkspace('sound_beep');
+            addBlockToWorkspace('wait_sec', 0.18);
+            addBlockToWorkspace('say_text', "Beshqirrali yulduz tayyor!");
+            document.getElementById('scratchPrediction').value = "5 marta 144 gradusga burilib 120 qadam yursa, yulduz shakli chiqadi.";
+            document.getElementById('scratchExplanation').value = "Yulduz uchlarining tashqi burilish burchagi 144 gradus (180 - 36) bo‘lgani uchun 5 marta takrorlanib yulduz chizildi.";
+            document.getElementById('currentProjectBadge').innerHTML = `Loyiha: <strong>Beshqirrali Yulduz</strong>`;
+            renderWorkspace();
+        } else if (key === 'octagon') {
+            const btn = document.getElementById('btnShapeOctagon');
+            btn.style.background = '#dc2626';
+            btn.style.color = '#fff';
+            document.getElementById('sidesSlider').value = 8;
+            currentPolygon.color = '#dc2626';
+            onSidesSliderChange(8);
+            applyPolygonToWorkspace();
+        } else if (key === 'circle') {
+            const btn = document.getElementById('btnShapeCircle');
+            btn.style.background = '#0d9488';
+            btn.style.color = '#fff';
+            resetStage();
+            scriptBlocks = [];
+            addBlockToWorkspace('clear_pen');
+            addBlockToWorkspace('pen_down');
+            addBlockToWorkspace('set_color', '#0284c7');
+            addBlockToWorkspace('set_pen_size', 2);
+            addBlockToWorkspace('repeat_n', 36);
+            addBlockToWorkspace('move_steps', 8);
+            addBlockToWorkspace('turn_right', 10);
+            document.getElementById('scratchPrediction').value = "36 marta 10 gradus burilib kichik qadamlar yurilsa, doira chiziladi.";
+            document.getElementById('scratchExplanation').value = "360 gradus to‘liq aylanani 36 qismga (har biri 10°) bo‘lib kichik qadamlar bilan silliq aylanma doira hosil qilindi.";
+            document.getElementById('currentProjectBadge').innerHTML = `Loyiha: <strong>Aylanma Doira (36 ta qadam)</strong>`;
+            renderWorkspace();
+        } else if (key === 'spiral') {
+            const btn = document.getElementById('btnShapeSpiral');
+            btn.style.background = '#9333ea';
+            btn.style.color = '#fff';
+            resetStage();
+            scriptBlocks = [];
+            addBlockToWorkspace('clear_pen');
+            addBlockToWorkspace('pen_down');
+            addBlockToWorkspace('set_color', '#9333ea');
+            addBlockToWorkspace('set_pen_size', 3);
+            addBlockToWorkspace('repeat_n', 24);
+            addBlockToWorkspace('move_steps', 25);
+            addBlockToWorkspace('turn_right', 35);
+            addBlockToWorkspace('random_color');
+            document.getElementById('scratchPrediction').value = "Kichik qadamlar va 35 graduslik burilish bilan rangli spiral hosil bo‘ladi.";
+            document.getElementById('scratchExplanation').value = "Burilish burchagi doimiy bo‘lgani holda ranglar almashishi bilan aylanma naqsh/spiral chizildi.";
+            document.getElementById('currentProjectBadge').innerHTML = `Loyiha: <strong>Rangli Spiral</strong>`;
+            renderWorkspace();
+        } else if (key === 'empty') {
+            resetStage();
+            scriptBlocks = [];
+            document.getElementById('scratchPrediction').value = "";
+            document.getElementById('scratchExplanation').value = "";
+            document.getElementById('currentProjectBadge').innerHTML = `Loyiha: <strong>Toza bo‘sh maydon</strong>`;
+            renderWorkspace();
+        }
+    }
+
+    // Sahnani va spraitni qayta chizish
+    function drawSprite() {
+        spriteCtx.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+
+        if (!sprite.visible) return;
+
+        const cx = (STAGE_WIDTH / 2) + sprite.x;
+        const cy = (STAGE_HEIGHT / 2) - sprite.y;
+
+        spriteCtx.save();
+        spriteCtx.translate(cx, cy);
+        const rad = ((sprite.direction - 90) * Math.PI) / 180;
+        spriteCtx.rotate(rad);
+
+        const scale = (sprite.size / 100);
+        spriteCtx.scale(scale, scale);
+
+        // Scratch mushukchasi
+        // 1. Tana
+        spriteCtx.fillStyle = '#f97316';
+        spriteCtx.beginPath();
+        spriteCtx.ellipse(0, 0, 20, 18, 0, 0, Math.PI * 2);
+        spriteCtx.fill();
+        spriteCtx.lineWidth = 2;
+        spriteCtx.strokeStyle = '#c2410c';
+        spriteCtx.stroke();
+
+        // 2. Quloqlar
+        spriteCtx.fillStyle = '#ea580c';
+        spriteCtx.beginPath();
+        spriteCtx.moveTo(-14, -10); spriteCtx.lineTo(-18, -24); spriteCtx.lineTo(-6, -16);
+        spriteCtx.closePath(); spriteCtx.fill(); spriteCtx.stroke();
+
+        spriteCtx.beginPath();
+        spriteCtx.moveTo(14, -10); spriteCtx.lineTo(18, -24); spriteCtx.lineTo(6, -16);
+        spriteCtx.closePath(); spriteCtx.fill(); spriteCtx.stroke();
+
+        // 3. Ko'zlar
+        spriteCtx.fillStyle = '#ffffff';
+        spriteCtx.beginPath();
+        spriteCtx.arc(-7, -4, 5, 0, Math.PI * 2);
+        spriteCtx.arc(7, -4, 5, 0, Math.PI * 2);
+        spriteCtx.fill();
+
+        // Qorachiq
+        spriteCtx.fillStyle = '#0f172a';
+        spriteCtx.beginPath();
+        spriteCtx.arc(-6, -4, 2.5, 0, Math.PI * 2);
+        spriteCtx.arc(8, -4, 2.5, 0, Math.PI * 2);
+        spriteCtx.fill();
+
+        // 4. Burun va mo'ylovlar
+        spriteCtx.fillStyle = '#991b1b';
+        spriteCtx.beginPath();
+        spriteCtx.arc(0, 2, 2.5, 0, Math.PI * 2);
+        spriteCtx.fill();
+
+        spriteCtx.strokeStyle = '#334155';
+        spriteCtx.lineWidth = 1.5;
+        spriteCtx.beginPath();
+        spriteCtx.moveTo(-10, 3); spriteCtx.lineTo(-24, 0);
+        spriteCtx.moveTo(-10, 6); spriteCtx.lineTo(-22, 9);
+        spriteCtx.moveTo(10, 3);  spriteCtx.lineTo(24, 0);
+        spriteCtx.moveTo(10, 6);  spriteCtx.lineTo(22, 9);
+        spriteCtx.stroke();
+
+        spriteCtx.restore();
+
+        // Koordinatalar paneli
+        document.getElementById('statX').innerText = Math.round(sprite.x);
+        document.getElementById('statY').innerText = Math.round(sprite.y);
+        document.getElementById('statDir').innerText = Math.round(sprite.direction);
+
+        // Nutq pufagi
+        const bubble = document.getElementById('speechBubble');
+        if (sprite.sayText) {
+            bubble.style.display = 'block';
+            bubble.innerText = sprite.sayText;
+            bubble.style.left = `${Math.min(Math.max(cx - 20, 10), STAGE_WIDTH - 150)}px`;
+            bubble.style.top = `${Math.max(cy - 60, 10)}px`;
+        } else {
+            bubble.style.display = 'none';
+        }
+    }
+
+    function resetStage() {
+        stopScratchProgram();
+        penCtx.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+
+        // Nozik koordinata o'qi
+        penCtx.strokeStyle = '#f1f5f9';
+        penCtx.lineWidth = 1;
+        penCtx.beginPath();
+        penCtx.moveTo(STAGE_WIDTH / 2, 0); penCtx.lineTo(STAGE_WIDTH / 2, STAGE_HEIGHT);
+        penCtx.moveTo(0, STAGE_HEIGHT / 2); penCtx.lineTo(STAGE_WIDTH, STAGE_HEIGHT / 2);
+        penCtx.stroke();
+
+        sprite.x = 0;
+        sprite.y = 0;
+        sprite.direction = 90;
+        sprite.size = 100;
+        sprite.visible = true;
+        sprite.sayText = "";
+        sprite.isPenDown = true;
+        sprite.penColor = currentPolygon.color || "#16a34a";
+        sprite.penSize = 3;
+
+        document.getElementById('penStatusLabel').innerText = "Tushirilgan (chizmoqda)";
+        document.getElementById('penStatusLabel').style.color = "#16a34a";
+        document.getElementById('currentSideLabel').innerText = "-";
+
+        drawSprite();
+    }
+
+    // Kategoriyani almashtirish
+    function switchCategory(catName) {
+        document.querySelectorAll('.scratch-cat-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = Array.from(document.querySelectorAll('.scratch-cat-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(catName));
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const container = document.getElementById('paletteBlocksContainer');
+        container.innerHTML = '';
+
+        for (const [key, b] of Object.entries(BLOCKS_DEF)) {
+            if (b.cat !== catName) continue;
+
+            const div = document.createElement('div');
+            div.className = `scratch-block block-${b.cat}`;
+            div.onclick = () => addBlockToWorkspace(key);
+
+            let content = '';
+            if (b.type === 'number') {
+                content = `<span>${b.defaultVal}</span> <span>${b.label}</span>`;
+            } else if (b.type === 'text') {
+                content = `<span>"${b.defaultVal}"</span> <span>${b.label}</span>`;
+            } else if (b.type === 'color') {
+                content = `<span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${b.defaultVal}; border:1px solid #fff;"></span> <span>${b.label}</span>`;
+            } else if (b.type === 'repeat') {
+                content = `<span>${b.defaultVal}</span> <span>${b.label}</span>`;
+            } else {
+                content = `<span>${b.label}</span>`;
+            }
+
+            div.innerHTML = `<span>➕</span> ${content}`;
+            container.appendChild(div);
+        }
+    }
+
+    // Ishchi maydonga blok qo'shish
+    function addBlockToWorkspace(key, initialVal = null) {
+        const def = BLOCKS_DEF[key];
+        if (!def) return;
+
+        const blockId = Date.now() + Math.random().toString(36).substr(2, 5);
+        const val = initialVal !== null ? initialVal : (def.defaultVal !== undefined ? def.defaultVal : '');
+
+        scriptBlocks.push({
+            id: blockId,
+            key: key,
+            val: val
+        });
+
+        renderWorkspace();
+    }
+
+    // Blokni nusxalash (Duplikat)
+    function duplicateBlock(id) {
+        const index = scriptBlocks.findIndex(b => b.id === id);
+        if (index === -1) return;
+        const orig = scriptBlocks[index];
+        const newBlock = {
+            id: Date.now() + Math.random().toString(36).substr(2, 5),
+            key: orig.key,
+            val: orig.val
+        };
+        scriptBlocks.splice(index + 1, 0, newBlock);
+        renderWorkspace();
+    }
+
+    // Blokni yuqoriga surish
+    function moveBlockUp(id) {
+        const index = scriptBlocks.findIndex(b => b.id === id);
+        if (index > 0) {
+            const temp = scriptBlocks[index];
+            scriptBlocks[index] = scriptBlocks[index - 1];
+            scriptBlocks[index - 1] = temp;
+            renderWorkspace();
+        }
+    }
+
+    // Blokni pastga surish
+    function moveBlockDown(id) {
+        const index = scriptBlocks.findIndex(b => b.id === id);
+        if (index >= 0 && index < scriptBlocks.length - 1) {
+            const temp = scriptBlocks[index];
+            scriptBlocks[index] = scriptBlocks[index + 1];
+            scriptBlocks[index + 1] = temp;
+            renderWorkspace();
+        }
+    }
+
+    // Ishchi maydonni chizish (Sikl C-bloki bilan ko'rgazmali)
+    function renderWorkspace() {
+        const container = document.getElementById('workspaceStack');
+        const badge = document.getElementById('blockCountBadge');
+        const warnBox = document.getElementById('penWarningBox');
+
+        badge.innerText = `${scriptBlocks.length} ta blok`;
+
+        // Qalam tekshiruvi: Agar skriptda pen_down bo'lmasa, ogohlantirish ko'rsatish
+        const hasPenDown = scriptBlocks.some(b => b.key === 'pen_down');
+        if (scriptBlocks.length > 0 && !hasPenDown) {
+            warnBox.style.display = 'block';
+        } else {
+            warnBox.style.display = 'none';
+        }
+
+        if (scriptBlocks.length === 0) {
+            container.innerHTML = `
+                <div id="workspacePlaceholder" style="text-align: center; color: #94a3b8; font-size: 0.85rem; margin-top: 5rem;">
+                    Hozircha bloklar yo‘q.<br>
+                    Yuqoridagi <strong>"⬡ Oltiburchak (Hexagon)"</strong> tugmasini bosing yoki chapdagi bloklarni qo‘shing.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        // Bloklarni chizish
+        let inLoop = false;
+        let loopContainer = null;
+        let loopBody = null;
+
+        scriptBlocks.forEach((item, index) => {
+            const def = BLOCKS_DEF[item.key];
+            if (!def) return;
+
+            let inputHtml = '';
+            if (def.type === 'number') {
+                inputHtml = `<input type="number" class="block-input" style="width: 56px;" value="${item.val}" oninput="updateBlockVal('${item.id}', this.value)" title="Qiymatni o‘zgartirish">`;
+            } else if (def.type === 'text') {
+                inputHtml = `<input type="text" class="block-input" style="width: 145px; text-align: left; padding: 2px 8px;" value="${item.val}" oninput="updateBlockVal('${item.id}', this.value)" title="Matnni tahrirlash">`;
+            } else if (def.type === 'repeat') {
+                inputHtml = `<input type="number" min="1" max="100" class="block-input" style="width: 54px;" value="${item.val}" oninput="updateBlockVal('${item.id}', this.value)" title="Takrorlashlar soni">`;
+            } else if (def.type === 'color') {
+                inputHtml = `<input type="color" value="${item.val}" style="width:28px; height:24px; padding:0; border:none; cursor:pointer;" onchange="updateBlockVal('${item.id}', this.value)">`;
+            }
+
+            if (item.key === 'repeat_n') {
+                inLoop = true;
+                loopContainer = document.createElement('div');
+                loopContainer.className = 'loop-container';
+
+                const header = document.createElement('div');
+                header.id = `ws_block_${item.id}`;
+                header.className = 'loop-header';
+                header.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span>🔁</span>
+                        ${inputHtml}
+                        <span>marta takrorlash (Sikl ramkasi):</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <button type="button" class="block-action-btn" onclick="moveBlockUp('${item.id}')" title="Yuqoriga">⬆️</button>
+                        <button type="button" class="block-action-btn" onclick="moveBlockDown('${item.id}')" title="Pastga">⬇️</button>
+                        <button type="button" class="block-action-btn btn-delete" onclick="removeBlock('${item.id}')" title="O‘chirish">✕</button>
+                    </div>
+                `;
+                loopContainer.appendChild(header);
+
+                loopBody = document.createElement('div');
+                loopBody.className = 'loop-body';
+                loopContainer.appendChild(loopBody);
+
+                container.appendChild(loopContainer);
+                return;
+            }
+
+            const div = document.createElement('div');
+            div.id = `ws_block_${item.id}`;
+            div.className = `workspace-block-item block-${def.cat}`;
+
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="opacity:0.6; font-size:0.75rem;">${index + 1}.</span>
+                    ${inputHtml}
+                    <span>${def.label}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:3px;">
+                    <button type="button" class="block-action-btn" onclick="moveBlockUp('${item.id}')" title="Yuqoriga surish" ${index === 0 ? 'disabled style="opacity:0.3;"' : ''}>⬆️</button>
+                    <button type="button" class="block-action-btn" onclick="moveBlockDown('${item.id}')" title="Pastga surish" ${index === scriptBlocks.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>⬇️</button>
+                    <button type="button" class="block-action-btn" onclick="duplicateBlock('${item.id}')" title="Nusxalash (Duplikat)">📋</button>
+                    <button type="button" class="block-action-btn btn-delete" onclick="removeBlock('${item.id}')" title="O‘chirish">✕</button>
+                </div>
+            `;
+
+            // Agar sikl ochilgan bo'lsa va bu oddiy takrorlanuvchi harakat bo'lsa, uni sikl ichiga qo'shamiz
+            if (inLoop && (item.key === 'move_steps' || item.key === 'turn_right' || item.key === 'turn_left' || item.key === 'sound_beep' || item.key === 'wait_sec')) {
+                loopBody.appendChild(div);
+            } else {
+                inLoop = false;
+                container.appendChild(div);
+            }
+        });
+    }
+
+    function updateBlockVal(id, val) {
+        const item = scriptBlocks.find(b => b.id === id);
+        if (item) {
+            item.val = val;
+        }
+    }
+
+    function removeBlock(id) {
+        scriptBlocks = scriptBlocks.filter(b => b.id !== id);
+        renderWorkspace();
+    }
+
+    function clearWorkspace() {
+        if (scriptBlocks.length === 0) return;
+        if (confirm("Barcha bloklarni o‘chirmoqchimisiz?")) {
+            scriptBlocks = [];
+            renderWorkspace();
+            resetStage();
+        }
+    }
+
+    // Dasturni to'xtatish
+    function stopScratchProgram() {
+        isRunning = false;
+        executionAborted = true;
+        document.getElementById('executionStatusLabel').innerText = "To‘xtatildi";
+        document.getElementById('executionStatusLabel').style.color = "#dc2626";
+        document.querySelectorAll('.workspace-block-item, .loop-header').forEach(el => el.classList.remove('executing'));
+    }
+
+    // Dasturni real vaqtda bajarish (Asinxron animatsiya)
+    async function runScratchProgram() {
+        if (scriptBlocks.length === 0) {
+            alert("Ishchi maydonda bloklar yo‘q! Yuqoridagi 'Oltiburchak (Hexagon)' tugmasini bosing.");
+            return;
+        }
+
+        if (isRunning) {
+            stopScratchProgram();
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        isRunning = true;
+        executionAborted = false;
+        document.getElementById('executionStatusLabel').innerText = "Oltiburchak chizilmoqda...";
+        document.getElementById('executionStatusLabel').style.color = "#16a34a";
+
+        // Bloklar zanjirini ajratish
+        // 1. Siklgacha bo'lgan bloklar (Init)
+        // 2. Sikl ichidagi bloklar (Repeated)
+        // 3. Sikldan keyingi bloklar (Post)
+        const expandedSteps = [];
+        let loopFound = false;
+        let loopTimes = 1;
+        let loopId = null;
+        let loopInner = [];
+        let postBlocks = [];
+
+        for (let i = 0; i < scriptBlocks.length; i++) {
+            const b = scriptBlocks[i];
+            if (b.key === 'repeat_n') {
+                loopFound = true;
+                loopTimes = Math.max(1, parseInt(b.val) || 1);
+                loopId = b.id;
+            } else if (loopFound) {
+                if (b.key === 'move_steps' || b.key === 'turn_right' || b.key === 'turn_left' || b.key === 'sound_beep' || b.key === 'wait_sec') {
+                    loopInner.push(b);
+                } else {
+                    postBlocks.push(b);
+                }
+            } else {
+                expandedSteps.push({ ...b, parentId: b.id });
+            }
+        }
+
+        // Boshlang'ich bloklarni bajarish
+        for (const step of expandedSteps) {
+            if (!isRunning || executionAborted) break;
+            const blockEl = document.getElementById(`ws_block_${step.parentId}`);
+            if (blockEl) blockEl.classList.add('executing');
+            await executeSingleBlock(step);
+            if (blockEl) blockEl.classList.remove('executing');
+            await new Promise(r => setTimeout(r, 40));
+        }
+
+        // Agar sikl mavjud bo'lsa, tomonma-tomon chizish
+        if (loopFound && loopInner.length > 0) {
+            for (let side = 1; side <= loopTimes; side++) {
+                if (!isRunning || executionAborted) break;
+
+                document.getElementById('currentSideLabel').innerText = `${side} / ${loopTimes}-tomon`;
+
+                const loopHeaderEl = document.getElementById(`ws_block_${loopId}`);
+                if (loopHeaderEl) loopHeaderEl.classList.add('executing');
+
+                for (const innerStep of loopInner) {
+                    if (!isRunning || executionAborted) break;
+                    const blockEl = document.getElementById(`ws_block_${innerStep.id}`);
+                    if (blockEl) blockEl.classList.add('executing');
+
+                    await executeSingleBlock(innerStep);
+
+                    if (blockEl) blockEl.classList.remove('executing');
+                    await new Promise(r => setTimeout(r, 60));
+                }
+
+                if (loopHeaderEl) loopHeaderEl.classList.remove('executing');
+            }
+        }
+
+        // Sikldan keyingi bloklar
+        for (const postStep of postBlocks) {
+            if (!isRunning || executionAborted) break;
+            const blockEl = document.getElementById(`ws_block_${postStep.id}`);
+            if (blockEl) blockEl.classList.add('executing');
+            await executeSingleBlock(postStep);
+            if (blockEl) blockEl.classList.remove('executing');
+            await new Promise(r => setTimeout(r, 40));
+        }
+
+        isRunning = false;
+        document.getElementById('executionStatusLabel').innerText = "Muvaffaqiyatli yakunlandi! ✅";
+        document.getElementById('executionStatusLabel').style.color = "#059669";
+        document.getElementById('currentSideLabel').innerText = "Barcha tomonlar chizildi";
+    }
+
+    // Bitta blokni bajarish mantiqi
+    async function executeSingleBlock(block) {
+        const val = block.val;
+
+        switch (block.key) {
+            case 'move_steps': {
+                const steps = parseFloat(val) || 60;
+                const oldX = sprite.x;
+                const oldY = sprite.y;
+
+                const rad = (sprite.direction * Math.PI) / 180;
+                sprite.x += Math.sin(rad) * steps;
+                sprite.y += Math.cos(rad) * steps;
+
+                // Qalam bilan chizish
+                if (sprite.isPenDown) {
+                    const fromX = (STAGE_WIDTH / 2) + oldX;
+                    const fromY = (STAGE_HEIGHT / 2) - oldY;
+                    const toX = (STAGE_WIDTH / 2) + sprite.x;
+                    const toY = (STAGE_HEIGHT / 2) - sprite.y;
+
+                    penCtx.strokeStyle = sprite.penColor;
+                    penCtx.lineWidth = sprite.penSize;
+                    penCtx.lineCap = 'round';
+                    penCtx.beginPath();
+                    penCtx.moveTo(fromX, fromY);
+                    penCtx.lineTo(toX, toY);
+                    penCtx.stroke();
+                }
+
+                drawSprite();
+                break;
+            }
+
+            case 'turn_right': {
+                const deg = parseFloat(val) || 60;
+                sprite.direction = (sprite.direction + deg) % 360;
+                drawSprite();
+                break;
+            }
+
+            case 'turn_left': {
+                const deg = parseFloat(val) || 60;
+                sprite.direction = (sprite.direction - deg + 360) % 360;
+                drawSprite();
+                break;
+            }
+
+            case 'goto_xy': {
+                sprite.x = 0;
+                sprite.y = 0;
+                drawSprite();
+                break;
+            }
+
+            case 'bounce_edge': {
+                const limitX = (STAGE_WIDTH / 2) - 20;
+                const limitY = (STAGE_HEIGHT / 2) - 20;
+                if (Math.abs(sprite.x) > limitX || Math.abs(sprite.y) > limitY) {
+                    sprite.direction = (sprite.direction + 180) % 360;
+                }
+                drawSprite();
+                break;
+            }
+
+            case 'say_text': {
+                sprite.sayText = String(val);
+                drawSprite();
+                await new Promise(r => setTimeout(r, 1200));
+                sprite.sayText = "";
+                drawSprite();
+                break;
+            }
+
+            case 'change_size': {
+                sprite.size = Math.max(20, Math.min(300, parseFloat(val) || 100));
+                drawSprite();
+                break;
+            }
+
+            case 'show_sprite':
+                sprite.visible = true;
+                drawSprite();
+                break;
+
+            case 'hide_sprite':
+                sprite.visible = false;
+                drawSprite();
+                break;
+
+            case 'pen_down':
+                sprite.isPenDown = true;
+                document.getElementById('penStatusLabel').innerText = "Tushirilgan (chizmoqda)";
+                document.getElementById('penStatusLabel').style.color = "#16a34a";
+                break;
+
+            case 'pen_up':
+                sprite.isPenDown = false;
+                document.getElementById('penStatusLabel').innerText = "Ko‘tarilgan";
+                document.getElementById('penStatusLabel').style.color = "#64748b";
+                break;
+
+            case 'clear_pen':
+                penCtx.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+                break;
+
+            case 'set_color':
+                sprite.penColor = val || '#16a34a';
+                break;
+
+            case 'set_pen_size':
+                sprite.penSize = Math.max(1, Math.min(30, parseFloat(val) || 3));
+                break;
+
+            case 'random_color': {
+                const colors = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#0d9488', '#2563eb', '#9333ea', '#db2777'];
+                sprite.penColor = colors[Math.floor(Math.random() * colors.length)];
+                break;
+            }
+
+            case 'sound_beep':
+                playBeepSound(587.33, 0.12);
+                break;
+
+            case 'sound_meow':
+                try {
+                    const ctx = getAudioContext();
+                    if (ctx) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(400, ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 0.15);
+                        osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.35);
+                        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.4);
+                    }
+                } catch(e){}
+                break;
+
+            case 'wait_sec': {
+                const ms = (parseFloat(val) || 0.15) * 1000;
+                await new Promise(r => setTimeout(r, ms));
+                break;
+            }
+        }
+    }
+
+    // Laboratoriya natijasini saqlash
+    function saveScratchExperiment() {
+        const explanation = document.getElementById('scratchExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni ('Nima o‘zgardi va algoritm qanday ishladi?') to‘ldiring!");
+            document.getElementById('scratchExplanation').focus();
+            return;
+        }
+
+        if (scriptBlocks.length === 0) {
+            alert("Hech qanday blok tuzilmadi! Yuqoridagi 'Oltiburchak (Hexagon)' tugmasini bosing.");
+            return;
+        }
+
+        const prediction = document.getElementById('scratchPrediction').value.trim();
+        const blockSummary = scriptBlocks.map((b, i) => `${i + 1}. ${BLOCKS_DEF[b.key] ? BLOCKS_DEF[b.key].label : b.key} (${b.val || ''})`).join(' -> ');
+
+        const payload = {
+            lab_type: 'scratch',
+            title: `Scratch shakllar loyihasi (${currentPolygon.name})`,
+            input_data: {
+                shape_name: currentPolygon.name,
+                sides: currentPolygon.sides,
+                blocks_count: scriptBlocks.length,
+                blocks: scriptBlocks
+            },
+            prediction: prediction,
+            calculated_result: `Shakl: ${currentPolygon.name} (Burchak=${Math.round(360/currentPolygon.sides)}°), x=${Math.round(sprite.x)}, y=${Math.round(sprite.y)} | ${blockSummary.substring(0, 150)}...`,
+            student_explanation: explanation,
+            additional_data: {
+                shape: currentPolygon.name,
+                sides: currentPolygon.sides,
+                turn_angle: Math.round(360 / currentPolygon.sides),
+                final_x: Math.round(sprite.x),
+                final_y: Math.round(sprite.y),
+                blocks_list: scriptBlocks
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(`✅ ${currentPolygon.name} loyihangiz va xulosangiz muvaffaqiyatli saqlandi!`);
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik yuz berdi: " + err);
+        });
+    }
+</script>
+{% endblock %}

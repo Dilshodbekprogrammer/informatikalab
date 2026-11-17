@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} - Loyiha tafsilotlari{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'projects:index' %}" class="btn btn-outline btn-sm">← Loyihalar ustaxonasiga qaytish</a>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="role-pill student">{{ project.grade }}-sinf uchun</span>
+                <span style="font-size: 0.85rem; color: var(--accent); font-weight: 700;">To‘liq namunaviy amaliy loyiha</span>
+            </div>
+            <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--primary);">
+                {{ project.title }}
+            </h1>
+        </div>
+
+        {% if is_teacher or is_admin %}
+            <div>
+                <a href="{% url 'projects:assign' project.id %}" class="btn btn-primary btn-lg">
+                    📢 Ushbu loyihani sinfga biriktirish
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <p style="font-size: 0.95rem; color: #334155; line-height: 1.6; margin-bottom: 1.5rem;">
+        {{ project.description }}
+    </p>
+
+    <!-- 4 ta dars bosqichlari kartochkalari -->
+    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+        📅 Loyihaning 4 ta darslik ketma-ketligi
+    </h2>
+
+    <div class="grid grid-cols-2" style="gap: 1.25rem;">
+        {% for step in steps %}
+            <div class="card" style="border: 1px solid var(--border-color); background-color: #fafafa; margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span class="role-pill teacher">{{ step.lesson_number }}-dars</span>
+                    {% if step.recommended_lab %}
+                        <span style="font-size: 0.8rem; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                            🔬 {{ step.get_recommended_lab_display }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+                    {{ step.title }}
+                </h3>
+
+                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; padding: 0.85rem; border-radius: var(--radius-sm); margin-bottom: 0.75rem; font-size: 0.88rem;">
+                    <strong style="color: #0f172a;">📖 Tayyor ko‘rsatma:</strong>
+                    <div style="color: #334155; margin-top: 0.25rem; line-height: 1.5;">
+                        {{ step.instructions|linebreaksbr }}
+                    </div>
+                </div>
+
+                <div style="font-size: 0.88rem; color: #475569; margin-bottom: 0.75rem;">
+                    <strong>🎯 Topshiriq:</strong> {{ step.task_details }}
+                </div>
+
+                <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.85rem; color: #166534;">
+                    <strong>📦 Topshiriladigan mahsulot:</strong> {{ step.expected_artifact }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

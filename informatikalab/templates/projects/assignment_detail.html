@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ assignment.project_template.title }} - {{ assignment.classroom.name }}{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem;">
+    <a href="{% url 'projects:index' %}" class="btn btn-outline btn-sm">← Loyihalar ro‘yxatiga qaytish</a>
+</div>
+
+<div class="card" style="box-shadow: var(--shadow-md); margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="role-pill teacher">{{ assignment.classroom.name }}</span>
+                <span class="role-pill {% if assignment.is_group_project %}student{% else %}teacher{% endif %}">
+                    {% if assignment.is_group_project %}👥 Guruhli loyiha{% else %}👤 Individual loyiha{% endif %}
+                </span>
+            </div>
+            <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">
+                {{ assignment.project_template.title }}
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Mas'ul o‘qituvchi: {{ assignment.teacher.get_full_name|default:assignment.teacher.username }} | 
+                Topshirish muddati: <strong>{{ assignment.deadline|default:"Belgilanmagan" }}</strong>
+            </p>
+        </div>
+
+        {% if is_teacher or is_admin %}
+            {% if assignment.is_group_project %}
+                <div>
+                    <a href="{% url 'projects:group_create' assignment.id %}" class="btn btn-accent btn-sm">
+                        ➕ Guruh tuzish va rollarni taqsimlash
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Agar guruhli loyiha bo'lsa, mavjud guruhlar va vazifalar taqsimoti -->
+    {% if assignment.is_group_project %}
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 0.75rem;">
+                👥 Loyiha guruhlari va vazifalar taqsimoti
+            </h3>
+
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+                {% for grp in groups %}
+                    <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="color: var(--primary); font-size: 1rem;">{{ grp.name }}</strong>
+                            <span style="font-size: 0.75rem; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">
+                                Yetakchi: {{ grp.leader.get_full_name|default:grp.leader.username }}
+                            </span>
+                        </div>
+
+                        <div style="font-size: 0.85rem; color: #475569; margin-bottom: 0.5rem;">
+                            <strong>A'zolar:</strong>
+                            {% for m in grp.members.all %}
+                                <span class="role-pill student" style="font-size: 0.75rem; margin-right: 3px;">{{ m.get_full_name|default:m.username }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div style="background: #ffffff; padding: 0.6rem; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.82rem; color: #334155;">
+                            <strong>Vazifalar taqsimoti:</strong><br>
+                            {{ grp.role_distribution|linebreaksbr }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state" style="grid-column: 1 / -1; padding: 1.5rem;">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">
+                            Ushbu sinfda hali guruhlar tuzilmagan.
+                            {% if is_teacher or is_admin %}
+                                "Guruh tuzish" tugmasi orqali o‘quvchilarni guruhlarga taqsimlang.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 4 ta dars topshiriqlari va o'quvchining topshirish jarayoni -->
+    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+        📅 Dars bosqichlari va mahsulot topshirish
+    </h3>
+
+    <div class="grid grid-cols-2" style="gap: 1.25rem;">
+        {% for step in steps %}
+            <div class="card" style="border: 1px solid var(--border-color); background-color: #fff; margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <span class="role-pill teacher">{{ step.lesson_number }}-dars</span>
+                        {% if is_student %}
+                            {% with sub=student_submissions|dictsort:step.id %}
+                                <!-- Submission status badge -->
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+
+                    <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">
+                        {{ step.title }}
+                    </h4>
+
+                    <p style="font-size: 0.88rem; color: #475569; margin-bottom: 0.75rem; line-height: 1.5;">
+                        {{ step.task_details }}
+                    </p>
+
+                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.6rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #166534; margin-bottom: 0.75rem;">
+                        <strong>📦 Topshiriladigan mahsulot:</strong> {{ step.expected_artifact }}
+                    </div>
+
+                    {% if step.recommended_lab %}
+                        <div style="font-size: 0.82rem; margin-bottom: 0.75rem; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 4px; padding: 4px 8px;">
+                            🔬 <strong style="color: #0e7490;">Tavsiya etilgan simulyatsiya:</strong>
+                            {% if step.recommended_lab == 'data' %}
+                                <a href="{% url 'labs:data_lab' %}" target="_blank" style="font-weight: 700; color: #0284c7;">📊 Ma’lumotlar laboratoriyasi ↗</a>
+                            {% elif step.recommended_lab == 'scratch' %}
+                                <a href="{% url 'labs:scratch' %}" target="_blank" style="font-weight: 700; color: #ea580c;">🐱 Scratch laboratoriyasi ↗</a>
+                            {% elif step.recommended_lab == 'crypto' %}
+                                <a href="{% url 'labs:crypto' %}" target="_blank" style="font-weight: 700; color: #d97706;">🔐 Kriptografiya laboratoriyasi ↗</a>
+                            {% elif step.recommended_lab == 'network' %}
+                                <a href="{% url 'labs:network' %}" target="_blank" style="font-weight: 700; color: #0284c7;">🌐 Tarmoqlar simulyatori ↗</a>
+                            {% elif step.recommended_lab == 'sorting' %}
+                                <a href="{% url 'labs:sorting' %}" target="_blank" style="font-weight: 700; color: #9333ea;">📊 Saralash vizualizatori ↗</a>
+                            {% elif step.recommended_lab == 'logic' %}
+                                <a href="{% url 'labs:logic' %}" target="_blank" style="font-weight: 700; color: #ca8a04;">🔌 Mantiqiy sxemalar ↗</a>
+                            {% elif step.recommended_lab == 'python' %}
+                                <a href="{% url 'labs:python' %}" target="_blank" style="font-weight: 700; color: #16a34a;">🐍 Python terminali ↗</a>
+                            {% else %}
+                                <a href="{% url 'labs:algorithms' %}" target="_blank" style="font-weight: 700; color: var(--primary);">⚡ Algoritmlar laboratoriyasi ↗</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; display: flex; gap: 0.5rem;">
+                    {% if is_student %}
+                        <a href="{% url 'projects:submit_step' assignment.id step.id %}" class="btn btn-primary btn-sm" style="flex: 1;">
+                            🚀 Mahsulot topshirish / Qayta ishlash
+                        </a>
+                    {% else %}
+                        <span style="font-size: 0.85rem; color: var(--text-muted); flex: 1;">
+                            O‘quvchilar bu bosqich bo‘yicha mahsulot topshirishadi.
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

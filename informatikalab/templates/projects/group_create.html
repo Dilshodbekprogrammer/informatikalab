@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Guruh tuzish - {{ assignment.classroom.name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'projects:assignment_detail' assignment.id %}" class="btn btn-outline btn-sm">← Loyiha maydoniga qaytish</a>
+</div>
+
+<div class="card" style="max-width: 650px; margin: 0 auto; box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h1 style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">👥 Yangi loyiha guruhi tuzish</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                {{ assignment.classroom.name }} sinfi uchun guruh tarkibi va rollar taqsimoti
+            </p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Guruh nomi</label>
+            <input type="text" name="name" class="form-control" placeholder="Masalan: 'Eko-Informatiklar' guruhi" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Guruh yetakchisi</label>
+            <select name="leader_id" class="form-control" required>
+                <option value="">-- Yetakchini tanlang --</option>
+                {% for st in class_students %}
+                    <option value="{{ st.id }}">{{ st.get_full_name|default:st.username }} (@{{ st.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Guruh a'zolari (bir nechta tanlash mumkin)</label>
+            <select name="members[]" class="form-control" multiple size="4" required>
+                {% for st in class_students %}
+                    <option value="{{ st.id }}">{{ st.get_full_name|default:st.username }} (@{{ st.username }})</option>
+                {% endfor %}
+            </select>
+            <small class="form-help">Bir nechta o‘quvchini tanlash uchun Ctrl (yoki Mac'da Cmd) tugmasini bosib turing.</small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Vazifalar taqsimoti (har bir a'zoning roli va vazifasi)</label>
+            <textarea name="role_distribution" class="form-control" rows="4" placeholder="Masalan:&#10;1. Ali - Ma'lumotlarni yig'ish va jadval tuzish&#10;2. Vali - Algoritm va formulani hisoblash&#10;3. Malika - Xulosa va taqdimot tayyorlash" required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                Guruhni saqlash
+            </button>
+            <a href="{% url 'projects:assignment_detail' assignment.id %}" class="btn btn-outline">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

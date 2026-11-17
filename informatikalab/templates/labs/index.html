@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}Interaktiv Laboratoriyalar - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Interaktiv Laboratoriyalar</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Nazariyani amaliy tajribalar, jonli simulyatsiya va ma'lumotlar tahlili orqali o‘rganish maydoni
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-3" style="gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- 1. Algoritmlar laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid var(--accent); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student">1-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Qadamma-qadam</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                ⚡ Algoritmlar laboratoriyasi
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Tarmoqlanuvchi va takrorlanuvchi algoritmlarni vizual bloklar, psevdokod va o‘zgaruvchilar jadvali orqali bosqichma-bosqich kuzating.
+            </p>
+            <div style="background-color: #f8fafc; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem;">
+                <strong>Algoritmlar:</strong>
+                <ul style="margin-left: 1rem; margin-top: 0.2rem; color: #475569;">
+                    <li>Katta sonni topish</li>
+                    <li>Juft / Toqlik</li>
+                    <li>Yig‘indi hisoblash</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{% url 'labs:algorithms' %}" class="btn btn-primary" style="width: 100%;">
+            Laboratoriyaga kirish →
+        </a>
+    </div>
+
+    <!-- 2. Ma'lumotlar laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid #3b82f6; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill teacher">2-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Tahlil & Grafik</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                📊 Ma’lumotlar laboratoriyasi
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Elektr energiyasi sarfini hisoblang, Chart.js diagrammalarini quring va tejash ssenariylarini tahlil qiling.
+            </p>
+            <div style="background-color: #eff6ff; border-left: 3px solid #3b82f6; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #1e40af;">
+                <strong>Mavzu:</strong> Energiya sarfi va tejash ssenariylari (1.0 → 0.8 kWh, 20% nazorat).
+            </div>
+        </div>
+        <a href="{% url 'labs:data_lab' %}" class="btn btn-accent" style="width: 100%;">
+            Laboratoriyaga kirish →
+        </a>
+    </div>
+
+    <!-- 3. Scratch Vizual Blokli Dasturlash laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid #ea580c; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#ffedd5; color:#c2410c;">3-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Scratch 3.0</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                🐱 Scratch laboratoriyasi
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Real vaqtda rang-barang Scratch bloklarini sudrab algoritmlar tuzing, qalam bilan shakllar chizing va sprait harakatini boshqaring!
+            </p>
+            <div style="background-color: #fff7ed; border-left: 3px solid #ea580c; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #9a3412;">
+                <strong>Imkoniyatlar:</strong> Geometriya (kvadrat, yulduz), sprait harakati, sikllar va qalam (pen).
+            </div>
+        </div>
+        <a href="{% url 'labs:scratch' %}" class="btn btn-outline" style="width: 100%; border-color:#ea580c; color:#ea580c; font-weight:700;">
+            Scratch muhitini ochish →
+        </a>
+    </div>
+
+    <!-- 4. Kriptografiya va Axborot Xavfsizligi laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid #d97706; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#fef3c7; color:#92400e;">4-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Xavfsizlik</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                🔐 Kriptografiya va Xavfsizlik
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Sezar shifri, binar XOR shifrlash amallari va parollar mustahkamligini (Brute-Force tahlili) interaktiv tekshiring.
+            </p>
+            <div style="background-color: #fffbeb; border-left: 3px solid #d97706; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #92400e;">
+                <strong>Mavzular:</strong> Sezar siljish kaliti, ikkilik XOR shifrlash va parollar entropiyasi.
+            </div>
+        </div>
+        <a href="{% url 'labs:crypto' %}" class="btn btn-outline" style="width: 100%; border-color:#d97706; color:#d97706; font-weight:700;">
+            Kriptografiyani ochish →
+        </a>
+    </div>
+
+    <!-- 5. Kompyuter Tarmoqlari simulyatori kartochkasi -->
+    <div class="card" style="border-top: 4px solid #0284c7; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#e0f2fe; color:#0369a1;">5-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Tarmoq & IP</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                🌐 Kompyuter Tarmoqlari
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Topologiyalar (Yulduz, Shina, Halqa), paket uzatish, kabel uzilishida ishonchlilik testi va IPv4 subnetting.
+            </p>
+            <div style="background-color: #f0f9ff; border-left: 3px solid #0284c7; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #0369a1;">
+                <strong>Mavzular:</strong> Star, Bus, Ring topologiyalari, Ping simulyatori, IPv4 kalkulyatori.
+            </div>
+        </div>
+        <a href="{% url 'labs:network' %}" class="btn btn-outline" style="width: 100%; border-color:#0284c7; color:#0284c7; font-weight:700;">
+            Tarmoq laboratoriyasini ochish →
+        </a>
+    </div>
+
+    <!-- 6. Saralash va Qidiruv Algoritmlari vizualizatori kartochkasi -->
+    <div class="card" style="border-top: 4px solid #9333ea; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#f3e8ff; color:#7e22ce;">6-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Algoritm & Tezlik</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                📊 Saralash va Qidiruv
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Pufaksimon (Bubble), Tanlash (Selection) va Ikkilik qidiruv (Binary Search) algoritmlarini jonli ustunlar orqali kuzating.
+            </p>
+            <div style="background-color: #f5f3ff; border-left: 3px solid #9333ea; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #6b21a8;">
+                <strong>Mavzular:</strong> Taqqoslashlar soni, almashtirishlar, O(N²) va O(log N) murakkablik.
+            </div>
+        </div>
+        <a href="{% url 'labs:sorting' %}" class="btn btn-outline" style="width: 100%; border-color:#9333ea; color:#9333ea; font-weight:700;">
+            Saralash laboratoriyasini ochish →
+        </a>
+    </div>
+
+    <!-- 7. Mantiqiy Elementlar va Sxemotexnika laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid #ca8a04; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#fef9c3; color:#854d0e;">7-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Mantiq & Sxema</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                🔌 Mantiqiy Sxemalar
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                AND, OR, NOT, XOR ventillari, rostlik jadvallari va kompyuter hisoblash asosi bo‘lgan 1-bitli jamlagich (Half-Adder).
+            </p>
+            <div style="background-color: #fefce8; border-left: 3px solid #ca8a04; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #854d0e;">
+                <strong>Mavzular:</strong> Ventillar, kalitlar, LED chiroq, Sum va Carry chiqishlari.
+            </div>
+        </div>
+        <a href="{% url 'labs:logic' %}" class="btn btn-outline" style="width: 100%; border-color:#ca8a04; color:#ca8a04; font-weight:700;">
+            Sxemotexnikani ochish →
+        </a>
+    </div>
+
+    <!-- 8. Python Algoritmik Terminali laboratoriyasi kartochkasi -->
+    <div class="card" style="border-top: 4px solid #16a34a; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span class="role-pill student" style="background:#dcfce7; color:#166534;">8-Laboratoriya</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Python & Terminal</span>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                🐍 Python Terminali
+            </h2>
+            <p style="color: #334155; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                Oflayn brauzer muhitida Python kodlarini yozing: shartlar (if/else), sikllar (for/while) va ro‘yxatlarni jonli terminalda sinang.
+            </p>
+            <div style="background-color: #f0fdf4; border-left: 3px solid #16a34a; padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; color: #166534;">
+                <strong>Mavzular:</strong> Python 3 sintaksisi, stdout konsoli va algoritmik tahlil.
+            </div>
+        </div>
+        <a href="{% url 'labs:python' %}" class="btn btn-outline" style="width: 100%; border-color:#16a34a; color:#16a34a; font-weight:700;">
+            Python terminalini ochish →
+        </a>
+    </div>
+</div>
+
+<!-- O'quvchining saqlangan tajribalari tarixi -->
+<div class="card">
+    <h3 class="card-title" style="margin-bottom: 1rem;">Mening laboratoriya tajribalarim tarixi</h3>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Laboratoriya</th>
+                    <th>Kirish parametrlari</th>
+                    <th>Natija</th>
+                    <th>Mening xulosam ("Nima o‘zgardi va nima sababdan?")</th>
+                    <th>Sana</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in my_submissions %}
+                    <tr>
+                        <td>
+                            <strong style="color: var(--primary);">{{ sub.get_lab_type_display }}</strong>
+                            {% if sub.algorithm_type %}
+                                <div style="font-size: 0.8rem; color: var(--accent);">{{ sub.get_algorithm_type_display }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.85rem;">
+                            {{ sub.input_data }}
+                        </td>
+                        <td>
+                            <span class="role-pill student">{{ sub.calculated_result }}</span>
+                        </td>
+                        <td style="font-size: 0.88rem; max-width: 320px; line-height: 1.45;">
+                            {{ sub.student_explanation }}
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">
+                            {{ sub.created_at|date:"Y-m-d H:i" }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                            Siz hali laboratoriyada tajriba o‘tkazmadingiz. Yuqoridagi laboratoriyalardan birini tanlang va birinchi tajribangizni bajaring!
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

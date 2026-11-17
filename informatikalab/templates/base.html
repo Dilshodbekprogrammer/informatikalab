@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}InformatikaLab - Ta'lim Platformasi{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Asosiy Navigatsiya -->
+    <header class="navbar no-print">
+        <div class="nav-container">
+            <a href="{% url 'core:home' %}" class="brand">
+                <div class="brand-icon">IL</div>
+                <span>InformatikaLab</span>
+                <span class="brand-tag">9-sinf</span>
+            </a>
+
+            <!-- Mobil menyu tugmasi -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menyu">☰</button>
+
+            <!-- Menyu havolalari -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.view_name == 'core:home' %}active{% endif %}">Bosh sahifa</a></li>
+                
+                {% if user.is_authenticated %}
+                    {% if user.is_teacher or user.is_admin_role %}
+                        <li><a href="{% url 'methods:list' %}" class="nav-link {% if 'methods' in request.path %}active{% endif %}">Metodlar</a></li>
+                        <li><a href="{% url 'lessons:list' %}" class="nav-link {% if 'lessons' in request.path %}active{% endif %}">Darslarim</a></li>
+                    {% else %}
+                        <li><a href="{% url 'lessons:student_lessons' %}" class="nav-link {% if 'lessons' in request.path %}active{% endif %}">Darslarim</a></li>
+                    {% endif %}
+
+                    <li><a href="{% url 'labs:index' %}" class="nav-link {% if 'labs' in request.path %}active{% endif %}">Laboratoriyalar</a></li>
+                    <li><a href="{% url 'projects:index' %}" class="nav-link {% if 'projects' in request.path %}active{% endif %}">Loyihalar</a></li>
+                    <li><a href="{% url 'portfolio:index' %}" class="nav-link {% if 'portfolio' in request.path %}active{% endif %}">Portfolio</a></li>
+                    
+                    {% if user.is_teacher or user.is_admin_role %}
+                        <li><a href="{% url 'accounts:classrooms' %}" class="nav-link {% if 'classrooms' in request.path %}active{% endif %}">Sinflar</a></li>
+                    {% endif %}
+                    {% if user.is_admin_role %}
+                        <li><a href="{% url 'accounts:users_list' %}" class="nav-link {% if 'users' in request.path %}active{% endif %}">Foydalanuvchilar</a></li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+
+            <!-- Foydalanuvchi qismi -->
+            <div class="nav-user no-print">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:profile' %}" class="user-badge" style="text-decoration: none; color: inherit; cursor: pointer;" title="Mening profilim va parol sozlamalari">
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                        <span class="role-pill {{ user.role }}">{{ user.get_role_display }}</span>
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline btn-sm" title="Profil va parolni tahrirlash">
+                        ⚙️ Profil
+                    </a>
+                    <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-sm">Chiqish</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-sm">Kirish</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Bildirishnomalar va xabarlar -->
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages-container no-print">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}">
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer no-print">
+        <p><strong>InformatikaLab</strong> &copy; 2026. Zamonaviy yondashuvlar va xorijiy tajribalar integratsiyasi yordamida informatika fanini o‘qitish platformasi.</p>
+        <p style="margin-top: 4px; font-size: 0.8rem; color: #94a3b8;">9-sinf informatika fani o‘qituvchi va o‘quvchilari uchun mustaqil ta'lim muhiti.</p>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('show');
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

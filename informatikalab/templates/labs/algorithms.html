@@ -1,0 +1,694 @@
+{% extends 'base.html' %}
+{% block title %}Algoritmlar laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem;">
+    <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <span class="role-pill student">Interaktiv Laboratoriya</span>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+                ⚡ Algoritmlar laboratoriyasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Parametrlarni kiriting, natijani taxmin qiling, qadamlarni kuzating va xulosangizni asoslang
+            </p>
+        </div>
+
+        <!-- Algoritm tanlash menyusi -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline btn-sm algo-tab active" onclick="selectAlgorithm('max_two', this)">
+                1. Ikkita sonning kattasi
+            </button>
+            <button type="button" class="btn btn-outline btn-sm algo-tab" onclick="selectAlgorithm('even_odd', this)">
+                2. Juft yoki toq son
+            </button>
+            <button type="button" class="btn btn-outline btn-sm algo-tab" onclick="selectAlgorithm('sum_n', this)">
+                3. 1 dan N gacha yig‘indi
+            </button>
+        </div>
+    </div>
+
+    <!-- Nazorat namunalari (Test cases) tezkor tugmalari -->
+    <div style="background-color: #f8fafc; border: 1px dashed var(--border-color); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+            🎯 Nazorat sinov misollari:
+        </div>
+        <div id="testCasesButtons" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <!-- JS dinamik to'ldiradi -->
+        </div>
+    </div>
+
+    <!-- Laboratoriya Asosiy Ish Maydoni -->
+    <div class="lab-container">
+        <!-- Chap tomon: Parametrlar, Psevdokod va Boshqaruv -->
+        <div>
+            <!-- 1. Boshlang'ich parametrlar va Taxmin -->
+            <div class="card" style="margin-bottom: 1.25rem;">
+                <h3 class="card-title" style="margin-bottom: 0.75rem;">1. Boshlang‘ich parametrlar va Taxmin</h3>
+                
+                <div id="inputParamsArea" class="grid grid-cols-2" style="gap: 0.75rem; margin-bottom: 1rem;">
+                    <!-- JS to'ldiradi -->
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                    <label class="form-label" style="color: #0d9488;">
+                        🤔 Sizningcha qanday natija chiqadi? (Oldindan taxminingiz)
+                    </label>
+                    <input type="text" id="studentPrediction" class="form-control" placeholder="Masalan: Eng katta son 7 bo‘ladi yoki Juft chiqadi">
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-primary" onclick="startSimulation()">
+                        ▶️ Simulyatsiyani boshlash
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="resetSimulation()">
+                        🔄 Boshidan boshlash
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Psevdokod va Bloklar -->
+            <div class="card" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <h3 class="card-title" style="margin-bottom: 0;">2. Algoritm psevdokodi</h3>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <button type="button" id="btnNextStep" class="btn btn-accent btn-sm" onclick="nextStep()" disabled>
+                            Keyingi qadam ⏭️
+                        </button>
+                    </div>
+                </div>
+
+                <div id="pseudocodeContainer" style="font-family: monospace; font-size: 0.9rem;">
+                    <!-- Psevdokod qatorlari -->
+                </div>
+            </div>
+        </div>
+
+        <!-- O'ng tomon: O'zgaruvchilar jadvali, Natija va Xulosa -->
+        <div>
+            <!-- O'zgaruvchilar jadvali (Live Watch) -->
+            <div class="card" style="margin-bottom: 1.25rem;">
+                <h3 class="card-title" style="margin-bottom: 0.75rem;">🔍 O‘zgaruvchilar jadvali (Xotira)</h3>
+                <div class="table-responsive">
+                    <table class="table" id="variablesTable">
+                        <thead>
+                            <tr>
+                                <th>O‘zgaruvchi</th>
+                                <th>Joriy qiymat</th>
+                                <th>Holati</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variablesTableBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-muted);">Simulyatsiya hali boshlanmadi</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Joriy qadam va shart holati -->
+            <div class="card" style="margin-bottom: 1.25rem; background-color: #f8fafc;">
+                <h3 class="card-title" style="font-size: 1rem; margin-bottom: 0.5rem;">Qadam tahlili</h3>
+                <div id="stepExplanation" style="font-size: 0.92rem; color: #334155; min-height: 48px; line-height: 1.5;">
+                    Simulyatsiyani boshlash uchun parametrlarni kiriting va "Simulyatsiyani boshlash" tugmasini bosing.
+                </div>
+                <div id="conditionResultBox" style="margin-top: 0.5rem; display: none; padding: 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;"></div>
+            </div>
+
+            <!-- Yakuniy natija va Saqlash -->
+            <div class="card" id="resultCard" style="border: 2px solid #e2e8f0;">
+                <div class="card-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem;">
+                    <span class="card-title">3. Yakuniy natija va Xulosa</span>
+                    <span id="finalResultBadge" class="role-pill teacher" style="display: none;"></span>
+                </div>
+
+                <div id="comparisonArea" style="margin-bottom: 1rem; display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem; border-radius: 6px;">
+                    <div style="font-size: 0.85rem; color: #166534;">
+                        <strong>Sizning taxminingiz:</strong> <span id="dispPrediction"></span><br>
+                        <strong>Haqiqiy natija:</strong> <span id="dispActualResult"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 700; color: var(--primary);">
+                        ✍️ O‘quvchi xulosasi: "Nima o‘zgardi va nima sababdan?"
+                    </label>
+                    <textarea id="studentExplanation" class="form-control" rows="3" placeholder="Masalan: Boshlang‘ich qiymat o‘zgarganda shart boshqacha bajarildi, chunki ..."></textarea>
+                    <small class="form-help">Ushbu tushuntirish o‘qituvchingizga va portfoliongizga saqlanadi.</small>
+                </div>
+
+                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="saveExperimentData()">
+                    💾 Tajriba natijasi va xulosani saqlash
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Algoritmlar tuzilmasi va mantiqi (Frontendda boshqariladigan toza va xavfsiz JS)
+    let currentAlgo = 'max_two';
+    let currentStepIndex = 0;
+    let simulationSteps = [];
+    let isFinished = false;
+    let executedInputSnapshot = null;
+
+    function onParamInputChanged() {
+        if (isFinished || executedInputSnapshot) {
+            isFinished = false;
+            executedInputSnapshot = null;
+            const badge = document.getElementById('finalResultBadge');
+            if (badge) badge.style.display = 'none';
+            const comp = document.getElementById('comparisonArea');
+            if (comp) comp.style.display = 'none';
+            const expl = document.getElementById('stepExplanation');
+            if (expl) expl.innerText = "Parametr qiymati o‘zgartirildi. Yangi natija uchun 'Simulyatsiyani boshlash' tugmasini bosing.";
+        }
+    }
+
+    const ALGORITHMS = {
+        max_two: {
+            title: "Ikki sonning kattasini topish",
+            type: "max_two",
+            params: [
+                { id: 'paramA', label: 'Birinchi son (a)', type: 'number', default: 7 },
+                { id: 'paramB', label: 'Ikkinchi son (b)', type: 'number', default: 3 },
+                { id: 'paramCond', label: 'Shart operatori', type: 'select', options: [
+                    { value: 'gt', text: 'a > b (Katta)' },
+                    { value: 'lt', text: 'a < b (Kichik)' }
+                ]}
+            ],
+            testCases: [
+                { label: "Misol 1: a=7, b=3", values: { paramA: 7, paramB: 3, paramCond: 'gt' } },
+                { label: "Misol 2: Teng sonlar (a=5, b=5)", values: { paramA: 5, paramB: 5, paramCond: 'gt' } },
+                { label: "Misol 3: Manfiy sonlar (a=-4, b=2)", values: { paramA: -4, paramB: 2, paramCond: 'gt' } }
+            ],
+            codeLines: [
+                "1. START: a va b qiymatlarini kiritish",
+                "2. IF a == b THEN natija = 'Teng'",
+                "3. ELSE IF a > b THEN max = a",
+                "4. ELSE max = b",
+                "5. OUTPUT: Natijani ekranga chiqarish"
+            ],
+            generator: function(a, b, cond) {
+                const steps = [];
+                steps.push({
+                    line: 0,
+                    vars: { a: a, b: b, max: '-' },
+                    expl: `Boshlang‘ich parametrlar qabul qilindi: a = ${a}, b = ${b}.`,
+                    condText: null
+                });
+
+                if (a === b) {
+                    steps.push({
+                        line: 1,
+                        vars: { a: a, b: b, max: a, holat: 'Teng' },
+                        expl: `Tenglik tekshiruvi: ${a} == ${b} -> ROST (TRUE). Ikkala son o‘zaro teng!`,
+                        condText: "Tenglik sharti bajarildi (a == b)"
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { a: a, b: b, natija: `Ikkala son teng: ${a}` },
+                        expl: `Natija: Sonlar teng (${a}). Algoritm muvaffaqiyatli yakunlandi.`,
+                        finalResult: `Sonlar teng: a = b = ${a}`,
+                        condText: "Tugallandi"
+                    });
+                } else if (cond === 'gt' ? (a > b) : (a < b)) {
+                    const operName = cond === 'gt' ? '>' : '<';
+                    steps.push({
+                        line: 2,
+                        vars: { a: a, b: b, tanlangan: a },
+                        expl: `Shart tekshiruvi: ${a} ${operName} ${b} -> ROST (TRUE). Shuning uchun birinchi son tanlandi.`,
+                        condText: `Shart bajarildi (${a} ${operName} ${b})`
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { a: a, b: b, natija: a },
+                        expl: `Natija: ${cond === 'gt' ? 'Eng katta' : 'Eng kichik'} son = ${a}.`,
+                        finalResult: `${cond === 'gt' ? 'Eng katta' : 'Eng kichik'} son: ${a}`,
+                        condText: "Tugallandi"
+                    });
+                } else {
+                    const operName = cond === 'gt' ? '>' : '<';
+                    steps.push({
+                        line: 3,
+                        vars: { a: a, b: b, tanlangan: b },
+                        expl: `Shart tekshiruvi: ${a} ${operName} ${b} -> YOLG‘ON (FALSE). ELSE qismi ishladi: ikkinchi son tanlandi.`,
+                        condText: `ELSE qismiga o‘tildi (${a} ${operName} ${b} bajarilmadi)`
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { a: a, b: b, natija: b },
+                        expl: `Natija: ${cond === 'gt' ? 'Eng katta' : 'Eng kichik'} son = ${b}.`,
+                        finalResult: `${cond === 'gt' ? 'Eng katta' : 'Eng kichik'} son: ${b}`,
+                        condText: "Tugallandi"
+                    });
+                }
+                return steps;
+            }
+        },
+
+        even_odd: {
+            title: "Sonning juft yoki toqligini aniqlash",
+            type: "even_odd",
+            params: [
+                { id: 'paramNumber', label: 'Tekshiriladigan son (x)', type: 'number', default: -4 }
+            ],
+            testCases: [
+                { label: "Misol 1: x = -4 (Manfiy juft)", values: { paramNumber: -4 } },
+                { label: "Misol 2: x = 7 (Musbat toq)", values: { paramNumber: 7 } },
+                { label: "Misol 3: x = 0 (Nol - juft)", values: { paramNumber: 0 } }
+            ],
+            codeLines: [
+                "1. START: x sonini kiritish",
+                "2. qoldiq = x % 2 (2 ga bo‘lgandagi qoldiq)",
+                "3. IF qoldiq == 0 THEN natija = 'Juft son'",
+                "4. ELSE natija = 'Toq son'",
+                "5. OUTPUT: Natijani ko‘rsatish"
+            ],
+            generator: function(x) {
+                const steps = [];
+                // Matematikada va dasturlashda manfiy sonning 2 ga bo'linishi qoldig'i
+                // -4 juft son, chunki -4 = 2 * (-2) + 0.
+                const isEven = (x % 2 === 0);
+                const rem = Math.abs(x % 2);
+
+                steps.push({
+                    line: 0,
+                    vars: { x: x, qoldiq: '-' },
+                    expl: `Kiritilgan son: x = ${x}. Juftlik 2 ga bo‘linish qoldig‘i orqali aniqlanadi.`,
+                    condText: null
+                });
+
+                steps.push({
+                    line: 1,
+                    vars: { x: x, qoldiq: rem },
+                    expl: `Qoldiq hisoblandi: |${x}| % 2 = ${rem}.`,
+                    condText: `Qoldiq: ${rem}`
+                });
+
+                if (isEven) {
+                    steps.push({
+                        line: 2,
+                        vars: { x: x, qoldiq: 0, holat: 'Juft son' },
+                        expl: `${x} sonini 2 ga bo‘lganda qoldiq 0 ga teng -> ROST. Demak ${x} - JUFT son!`,
+                        condText: "qoldiq == 0 bajarildi"
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { x: x, natija: `${x} — juft son` },
+                        expl: `Yakuniy xulosa: ${x} soni juft son hisoblanadi.`,
+                        finalResult: `${x} juft son`,
+                        condText: "Tugallandi"
+                    });
+                } else {
+                    steps.push({
+                        line: 3,
+                        vars: { x: x, qoldiq: rem, holat: 'Toq son' },
+                        expl: `${x} sonini 2 ga bo‘lganda qoldiq 0 emas (qoldiq = 1) -> ELSE qismi ishladi: TOQ son!`,
+                        condText: "qoldiq != 0 (ELSE)"
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { x: x, natija: `${x} — toq son` },
+                        expl: `Yakuniy xulosa: ${x} soni toq son hisoblanadi.`,
+                        finalResult: `${x} toq son`,
+                        condText: "Tugallandi"
+                    });
+                }
+                return steps;
+            }
+        },
+
+        sum_n: {
+            title: "1 dan N gacha sonlar yig‘indisini hisoblash",
+            type: "sum_n",
+            params: [
+                { id: 'paramN', label: 'Chegara soni (N)', type: 'number', default: 5 }
+            ],
+            testCases: [
+                { label: "Misol 1: N = 5 (yig‘indi: 15)", values: { paramN: 5 } },
+                { label: "Misol 2: N = 0 (yig‘indi: 0)", values: { paramN: 0 } },
+                { label: "Misol 3: N = 3 (yig‘indi: 6)", values: { paramN: 3 } }
+            ],
+            codeLines: [
+                "1. START: N qiymatini kiritish",
+                "2. sum = 0, i = 1 (Boshlang‘ich qiymatlar)",
+                "3. WHILE i <= N DO (Sikl takrorlanishi)",
+                "4.     sum = sum + i; i = i + 1",
+                "5. OUTPUT: sum (Yig‘indini chiqarish)"
+            ],
+            generator: function(N) {
+                const steps = [];
+                N = parseInt(N);
+                if (isNaN(N)) N = 0;
+
+                steps.push({
+                    line: 0,
+                    vars: { N: N, sum: 0, i: 1 },
+                    expl: `N = ${N} qabul qilindi. Yig‘indi hisoblash boshlanadi.`,
+                    condText: null
+                });
+
+                if (N <= 0) {
+                    steps.push({
+                        line: 2,
+                        vars: { N: N, sum: 0, i: 1 },
+                        expl: `Shart tekshiruvi: i (1) <= N (${N}) -> YOLG‘ON. Siklga kirmadi.`,
+                        condText: "1 <= 0 bajarilmadi"
+                    });
+                    steps.push({
+                        line: 4,
+                        vars: { N: N, sum: 0 },
+                        expl: `N = ${N} uchun 1 dan N gacha yig‘indi 0 ga teng.`,
+                        finalResult: `Yig‘indi: 0`,
+                        condText: "Tugallandi"
+                    });
+                    return steps;
+                }
+
+                let sum = 0;
+                steps.push({
+                    line: 1,
+                    vars: { N: N, sum: 0, i: 1 },
+                    expl: `Boshlang‘ich holat: sum = 0 o‘rnatildi, hisoblagich i = 1.`,
+                    condText: "Tayyorgarlik"
+                });
+
+                // Sikl qadamlari (agar N katta bo'lsa 10 gacha cheklab ko'rsatamiz)
+                const limit = Math.min(N, 10);
+                for (let i = 1; i <= limit; i++) {
+                    steps.push({
+                        line: 2,
+                        vars: { N: N, sum: sum, i: i },
+                        expl: `Sikl tekshiruvi: i (${i}) <= N (${N}) -> ROST. Qadam bajarilmoqda.`,
+                        condText: `Takrorlanish: ${i} <= ${N}`
+                    });
+                    sum += i;
+                    steps.push({
+                        line: 3,
+                        vars: { N: N, sum: sum, i: i + 1 },
+                        expl: `Yig‘indiga qo‘shildi: sum = ${sum - i} + ${i} = ${sum}. Keyingi qadam uchun i = ${i + 1}.`,
+                        condText: `Yig‘indi: ${sum}`
+                    });
+                }
+
+                if (N > 10) {
+                    // Agar N > 10 bo'lsa to'liq formulaviy yakun
+                    sum = (N * (N + 1)) / 2;
+                }
+
+                steps.push({
+                    line: 4,
+                    vars: { N: N, sum: sum },
+                    expl: `Sikl yakunlandi! 1 dan ${N} gacha bo‘lgan barcha sonlar yig‘indisi: ${sum}.`,
+                    finalResult: `Yig‘indi: ${sum}`,
+                    condText: "Tugallandi"
+                });
+
+                return steps;
+            }
+        }
+    };
+
+    function selectAlgorithm(algoKey, tabEl) {
+        currentAlgo = algoKey;
+        document.querySelectorAll('.algo-tab').forEach(t => t.classList.remove('active'));
+        if (tabEl) tabEl.classList.add('active');
+        renderInputs();
+        renderTestCases();
+        renderPseudocode();
+        resetSimulation();
+    }
+
+    function renderInputs() {
+        const algo = ALGORITHMS[currentAlgo];
+        const container = document.getElementById('inputParamsArea');
+        container.innerHTML = '';
+
+        algo.params.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.style.marginBottom = '0';
+            div.innerHTML = `<label class="form-label">${p.label}</label>`;
+
+            if (p.type === 'select') {
+                const select = document.createElement('select');
+                select.id = p.id;
+                select.className = 'form-control';
+                select.onchange = onParamInputChanged;
+                p.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.innerText = opt.text;
+                    select.appendChild(option);
+                });
+                div.appendChild(select);
+            } else {
+                const input = document.createElement('input');
+                input.type = p.type;
+                input.id = p.id;
+                input.className = 'form-control';
+                input.value = p.default;
+                input.oninput = onParamInputChanged;
+                div.appendChild(input);
+            }
+            container.appendChild(div);
+        });
+    }
+
+    function renderTestCases() {
+        const algo = ALGORITHMS[currentAlgo];
+        const container = document.getElementById('testCasesButtons');
+        container.innerHTML = '';
+
+        algo.testCases.forEach(tc => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-outline btn-sm';
+            btn.innerText = tc.label;
+            btn.onclick = () => {
+                for (const [key, val] of Object.entries(tc.values)) {
+                    const el = document.getElementById(key);
+                    if (el) el.value = val;
+                }
+                resetSimulation();
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function renderPseudocode() {
+        const algo = ALGORITHMS[currentAlgo];
+        const container = document.getElementById('pseudocodeContainer');
+        container.innerHTML = '';
+
+        algo.codeLines.forEach((line, idx) => {
+            const div = document.createElement('div');
+            div.id = `codeLine_${idx}`;
+            div.className = 'step-card';
+            div.innerText = line;
+            container.appendChild(div);
+        });
+    }
+
+    function startSimulation() {
+        const algo = ALGORITHMS[currentAlgo];
+        let steps = [];
+
+        if (currentAlgo === 'max_two') {
+            const a = parseFloat(document.getElementById('paramA').value);
+            const b = parseFloat(document.getElementById('paramB').value);
+            const cond = document.getElementById('paramCond').value;
+            if (isNaN(a) || isNaN(b)) {
+                alert("Iltimos, sonlarni to‘g‘ri kiriting!");
+                return;
+            }
+            steps = algo.generator(a, b, cond);
+        } else if (currentAlgo === 'even_odd') {
+            const x = parseInt(document.getElementById('paramNumber').value);
+            if (isNaN(x)) {
+                alert("Iltimos, butun son kiriting!");
+                return;
+            }
+            steps = algo.generator(x);
+        } else if (currentAlgo === 'sum_n') {
+            const n = parseInt(document.getElementById('paramN').value);
+            if (isNaN(n)) {
+                alert("Iltimos, N sonini kiriting!");
+                return;
+            }
+            steps = algo.generator(n);
+        }
+
+        simulationSteps = steps;
+        currentStepIndex = 0;
+        isFinished = false;
+
+        document.getElementById('btnNextStep').disabled = false;
+        applyStep(0);
+    }
+
+    function applyStep(index) {
+        if (!simulationSteps || index >= simulationSteps.length) return;
+        const step = simulationSteps[index];
+
+        // 1. Psevdokod qatorini belgilash
+        document.querySelectorAll('.step-card').forEach((el, idx) => {
+            el.classList.remove('active');
+            if (idx === step.line) {
+                el.classList.add('active');
+            }
+        });
+
+        // 2. O'zgaruvchilar jadvalini yangilash
+        const tbody = document.getElementById('variablesTableBody');
+        tbody.innerHTML = '';
+        for (const [varName, varVal] of Object.entries(step.vars)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong style="color:var(--primary); font-family:monospace;">${varName}</strong></td>
+                <td><span class="variable-badge">${varVal}</span></td>
+                <td><span style="font-size:0.8rem; color:#0d9488;">Faol</span></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 3. Qadam tahlili
+        document.getElementById('stepExplanation').innerText = step.expl;
+        const condBox = document.getElementById('conditionResultBox');
+        if (step.condText) {
+            condBox.style.display = 'block';
+            condBox.style.backgroundColor = '#d1fae5';
+            condBox.style.color = '#065f46';
+            condBox.innerText = `Holat: ${step.condText}`;
+        } else {
+            condBox.style.display = 'none';
+        }
+
+        // 4. Agar oxirgi qadam bo'lsa
+        if (index === simulationSteps.length - 1) {
+            isFinished = true;
+            executedInputSnapshot = {};
+            const algo = ALGORITHMS[currentAlgo];
+            algo.params.forEach(p => {
+                const el = document.getElementById(p.id);
+                if (el) executedInputSnapshot[p.id] = el.value;
+            });
+
+            document.getElementById('btnNextStep').disabled = true;
+            
+            const badge = document.getElementById('finalResultBadge');
+            badge.style.display = 'inline-block';
+            badge.innerText = `Natija: ${step.finalResult || 'Yakunlandi'}`;
+
+            // Taxmin va haqiqiy natija solishtiruvi
+            const pred = document.getElementById('studentPrediction').value.trim();
+            document.getElementById('comparisonArea').style.display = 'block';
+            document.getElementById('dispPrediction').innerText = pred || "(Kiritilmadi)";
+            document.getElementById('dispActualResult').innerText = step.finalResult || 'Bajarildi';
+        }
+    }
+
+    function nextStep() {
+        if (currentStepIndex < simulationSteps.length - 1) {
+            currentStepIndex++;
+            applyStep(currentStepIndex);
+        }
+    }
+
+    function resetSimulation() {
+        currentStepIndex = 0;
+        simulationSteps = [];
+        isFinished = false;
+        executedInputSnapshot = null;
+
+        document.querySelectorAll('.step-card').forEach(el => el.classList.remove('active'));
+        document.getElementById('variablesTableBody').innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Simulyatsiya hali boshlanmadi</td></tr>`;
+        document.getElementById('stepExplanation').innerText = `Simulyatsiyani boshlash uchun "Simulyatsiyani boshlash" tugmasini bosing.`;
+        document.getElementById('conditionResultBox').style.display = 'none';
+        document.getElementById('btnNextStep').disabled = true;
+        document.getElementById('finalResultBadge').style.display = 'none';
+        document.getElementById('comparisonArea').style.display = 'none';
+    }
+
+    // AJAX orqali tajriba natijasini saqlash
+    function saveExperimentData() {
+        if (!isFinished || !executedInputSnapshot) {
+            alert("Tajriba hali to‘liq bajarilmadi yoki simulyatsiya o‘tkazilmadi! Iltimos, avval 'Simulyatsiyani boshlash' tugmasini bosing va barcha qadamlarni bajaring.");
+            return;
+        }
+
+        const algo = ALGORITHMS[currentAlgo];
+        // Qiymatlar o'zgargan-o'zgarmaganligini tekshirish (Bug 3 himoyasi)
+        for (const p of algo.params) {
+            const el = document.getElementById(p.id);
+            if (el && el.value !== executedInputSnapshot[p.id]) {
+                alert(`Diqqat: ${p.label} qiymati simulyatsiya bajarilgandan so‘ng o‘zgartirilgan! Natija eskirgan (${executedInputSnapshot[p.id]} -> ${el.value}). Yangi qiymatlar bilan 'Simulyatsiyani boshlash' tugmasini bosing.`);
+                isFinished = false;
+                executedInputSnapshot = null;
+                return;
+            }
+        }
+
+        const explanation = document.getElementById('studentExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni ('Nima o‘zgardi va nima sababdan?') yozing!");
+            document.getElementById('studentExplanation').focus();
+            return;
+        }
+
+        const prediction = document.getElementById('studentPrediction').value.trim();
+        const inputData = {};
+        algo.params.forEach(p => {
+            const el = document.getElementById(p.id);
+            if (el) inputData[p.id] = el.value;
+        });
+
+        const lastStep = simulationSteps.length > 0 ? simulationSteps[simulationSteps.length - 1] : null;
+        const calculatedResult = lastStep ? (lastStep.finalResult || JSON.stringify(lastStep.vars)) : "Tajriba o‘tkazildi";
+
+        const payload = {
+            lab_type: 'algorithm',
+            algorithm_type: currentAlgo,
+            title: `${algo.title} tajribasi`,
+            input_data: inputData,
+            prediction: prediction,
+            calculated_result: calculatedResult,
+            student_explanation: explanation,
+            additional_data: { steps_count: simulationSteps.length }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ " + data.message);
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Tarmoq xatosi yoki saqlashda muammo yuz berdi.");
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectAlgorithm('max_two');
+    });
+</script>
+{% endblock %}

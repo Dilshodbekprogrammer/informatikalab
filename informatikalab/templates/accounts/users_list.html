@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Foydalanuvchilar boshqaruvi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <span class="role-pill admin">Administrator paneli</span>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+            Foydalanuvchilar boshqaruvi
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin: 0;">
+            Platformadagi barcha o‘qituvchilar va o‘quvchilar hisoblari, rollari hamda parollarini boshqarish.
+        </p>
+    </div>
+
+    <!-- Tezkor Harakatlar -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'accounts:add_teacher' %}" class="btn btn-primary btn-sm">
+            👨‍🏫 ➕ Yangi o‘qituvchi qo‘shish
+        </a>
+        <a href="{% url 'accounts:add_student' %}" class="btn btn-accent btn-sm">
+            🧑‍🎓 ➕ Yangi o‘quvchi qo‘shish
+        </a>
+    </div>
+</div>
+
+<!-- Statistik kartochkalar -->
+<div class="grid grid-cols-3" style="gap: 1.25rem; margin-bottom: 1.75rem;">
+    <div class="card" style="border-left: 4px solid var(--primary); margin-bottom: 0;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Jami o‘qituvchilar</div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+            {{ teachers_count }} nafar
+        </div>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--accent); margin-bottom: 0;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Jami o‘quvchilar</div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--accent); margin-top: 0.25rem;">
+            {{ students_count }} nafar
+        </div>
+    </div>
+    <div class="card" style="border-left: 4px solid #10b981; margin-bottom: 0;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Mavjud sinflar</div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: #059669; margin-top: 0.25rem;">
+            {{ classrooms.count }} ta sinf
+        </div>
+    </div>
+</div>
+
+<!-- 1. O'qituvchilar jadvali -->
+<div class="card" style="margin-bottom: 1.75rem; box-shadow: var(--shadow-sm);">
+    <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary); margin: 0;">
+                👨‍🏫 O‘qituvchilar ro‘yxati ({{ teachers.count }})
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                Dars yaratuvchi, metodlarni amalda qo‘llovchi va o‘quvchilar ishini baholovchi pedagoglar
+            </p>
+        </div>
+        <a href="{% url 'accounts:add_teacher' %}" class="btn btn-outline btn-sm">
+            ➕ O‘qituvchi qo‘shish
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>F.I.SH</th>
+                    <th>Login (Foydalanuvchi nomi)</th>
+                    <th>Fan</th>
+                    <th>Telefon / Email</th>
+                    <th>Mas'ul sinflari</th>
+                    <th style="text-align: right;">Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                    <tr>
+                        <td>
+                            <strong>{{ teacher.get_full_name|default:teacher.username }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                Qo‘shilgan sana: {{ teacher.date_joined|date:"d.m.Y" }}
+                            </div>
+                        </td>
+                        <td>
+                            <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 700; color: #0f172a;">
+                                {{ teacher.username }}
+                            </code>
+                        </td>
+                        <td>{{ teacher.subject|default:"Informatika" }}</td>
+                        <td>
+                            <div>{{ teacher.phone|default:"—" }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ teacher.email|default:"—" }}</div>
+                        </td>
+                        <td>
+                            {% for c in teacher.teaching_classes.all %}
+                                <span class="badge" style="background:#e0f2fe; color:#0369a1; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 700;">
+                                    {{ c.name }}
+                                </span>
+                            {% empty %}
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">Biriktirilmagan</span>
+                            {% endfor %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.35rem;">
+                                <a href="{% url 'accounts:edit_user' teacher.id %}" class="btn btn-outline btn-sm" title="Tahrirlash va parolni yangilash">
+                                    ✏️ Tahrirlash
+                                </a>
+                                {% if teacher.id != user.id %}
+                                    <a href="{% url 'accounts:delete_user' teacher.id %}" class="btn btn-danger btn-sm" title="O‘chirish">
+                                        🗑️
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                            Hozircha tizimda o‘qituvchilar mavjud emas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 2. O'quvchilar jadvali -->
+<div class="card" style="box-shadow: var(--shadow-sm);">
+    <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary); margin: 0;">
+                🧑‍🎓 O‘quvchilar ro‘yxati ({{ students.count }})
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                Darslarda qatnashuvchi, laboratoriyalarda tadqiqot o‘tkazuvchi o‘quvchilar
+            </p>
+        </div>
+        <a href="{% url 'accounts:add_student' %}" class="btn btn-outline btn-sm">
+            ➕ O‘quvchi qo‘shish
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>F.I.SH</th>
+                    <th>Login (Foydalanuvchi nomi)</th>
+                    <th>Sinfi</th>
+                    <th>Aloqa</th>
+                    <th style="text-align: right;">Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>
+                            <strong>{{ student.get_full_name|default:student.username }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                Qo‘shilgan sana: {{ student.date_joined|date:"d.m.Y" }}
+                            </div>
+                        </td>
+                        <td>
+                            <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 700; color: #0f172a;">
+                                {{ student.username }}
+                            </code>
+                        </td>
+                        <td>
+                            {% for c in student.enrolled_classes.all %}
+                                <span class="badge" style="background:#fef3c7; color:#92400e; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 700;">
+                                    {{ c.name }}
+                                </span>
+                            {% empty %}
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">Sinf belgilanmagan</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div>{{ student.phone|default:"—" }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ student.email|default:"—" }}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.35rem;">
+                                <a href="{% url 'accounts:edit_user' student.id %}" class="btn btn-outline btn-sm" title="Tahrirlash va parolni yangilash">
+                                    ✏️ Tahrirlash
+                                </a>
+                                <a href="{% url 'accounts:delete_user' student.id %}" class="btn btn-danger btn-sm" title="O‘chirish">
+                                    🗑️
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                            Hozircha tizimda o‘quvchilar mavjud emas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
