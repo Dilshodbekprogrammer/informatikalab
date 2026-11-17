@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}{{ classroom.name }} - Sinf tafsilotlari{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'accounts:classrooms' %}" class="btn btn-outline btn-sm" style="margin-bottom: 0.75rem;">← Sinflarga qaytish</a>
+    <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">{{ classroom.name }} o‘quvchilari</h1>
+    <p style="color: var(--text-muted); font-size: 0.92rem;">Mas'ul o‘qituvchi: {{ classroom.teacher.get_full_name|default:classroom.teacher.username }} | {{ classroom.grade }}-sinf</p>
+</div>
+
+<div class="grid grid-cols-2">
+    <!-- Sinfdagi o'quvchilar ro'yxati -->
+    <div class="card">
+        <h3 class="card-title" style="margin-bottom: 1rem;">Sinf o‘quvchilari ({{ classroom.students.count }} nafar)</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>F.I.SH / Login</th>
+                        <th>Status</th>
+                        <th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in classroom.students.all %}
+                        <tr>
+                            <td>
+                                <strong>{{ student.get_full_name|default:student.username }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ student.username }}</div>
+                            </td>
+                            <td><span class="role-pill student">O‘quvchi</span></td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <input type="hidden" name="action" value="remove">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('O‘quvchini sinfdan chiqarmoqchimisiz?')">Chiqarish</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">
+                                Bu sinfga hozircha o‘quvchilar qo‘shilmagan.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- O'ng ustun: O'quvchi biriktirish va yangi o'quvchi yaratish -->
+    <div>
+        <!-- Mavjud o'quvchini sinfga biriktirish -->
+        <div class="card" style="margin-bottom: 1.25rem;">
+            <h3 class="card-title" style="margin-bottom: 1rem;">➕ Mavjud o‘quvchini sinfga biriktirish</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="form-group">
+                    <label class="form-label">Tizimdagi o‘quvchini tanlang</label>
+                    <select name="student_id" class="form-control" required>
+                        <option value="">-- O‘quvchini tanlang --</option>
+                        {% for s in all_students %}
+                            <option value="{{ s.id }}">{{ s.get_full_name|default:s.username }} (@{{ s.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-accent">Sinfga biriktirish</button>
+            </form>
+        </div>
+
+        <!-- Yangi o'quvchi hisobini yaratish va qo'shish -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 0.5rem; color: var(--primary);">
+                👤 ➕ Yangi o‘quvchi yaratish
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Yangi o‘quvchiga hisob oching va to‘g‘ridan-to‘g‘ri ushbu sinfga qo‘shing.
+            </p>
+
+            <form method="post" action="{% url 'accounts:classroom_add_student' classroom.id %}">
+                {% csrf_token %}
+                <div class="grid grid-cols-2" style="gap: 0.5rem;">
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label class="form-label" style="font-size: 0.78rem;">Ism *</label>
+                        <input type="text" name="first_name" class="form-control" placeholder="Ismi" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label class="form-label" style="font-size: 0.78rem;">Familiya *</label>
+                        <input type="text" name="last_name" class="form-control" placeholder="Familiyasi" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2" style="gap: 0.5rem;">
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label class="form-label" style="font-size: 0.78rem;">Login *</label>
+                        <input type="text" name="username" class="form-control" placeholder="login_nomi" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label class="form-label" style="font-size: 0.78rem;">Parol *</label>
+                        <input type="text" name="password" class="form-control" placeholder="parol123" minlength="6" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 0.5rem;">
+                    💾 O‘quvchini yaratish va sinfga qo‘shish
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

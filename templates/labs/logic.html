@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+{% block title %}Mantiqiy Elementlar va Sxemotexnika Laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#fef3c7; color:#92400e; font-weight:700;">
+            🔌 9-sinf Mantiqiy amallar va kompyuter arxitekturasi
+        </span>
+    </div>
+</div>
+
+<!-- Sarlavha -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #eab308; color: #000; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">🔌</span>
+                Mantiqiy Elementlar va Sxemotexnika Laboratoriyasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Kompyuter mikrosxemalari qanday ishlashini o‘rganing: mantiqiy ventillar (AND, OR, NOT, XOR), rostlik jadvallari va ikkilik jamlagich (Half-Adder).
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Simulyatsiya Modullari Tanlagichi -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <button type="button" class="btn btn-sm" id="tabGates" onclick="switchLogicTab('gates')" style="background:#ca8a04; color:#fff; font-weight:700;">
+        ⚡ 1. Mantiqiy Ventillar (Gates & Rostlik jadvali)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="tabAdder" onclick="switchLogicTab('adder')" style="font-weight:700;">
+        🧮 2. Ikkilik Jamlagich Sxemasi (Half-Adder)
+    </button>
+</div>
+
+<!-- 1-MODUL: MANTIQIY VENTILLAR -->
+<div id="moduleGates" class="card" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: #854d0e; margin: 0;">
+                ⚡ Mantiqiy Element (Ventil) Tanlang
+            </h2>
+            <p style="font-size: 0.82rem; color: #713f12; margin-top: 0.2rem;">
+                Kalitlarni (0 va 1) yoqing/o‘chiring — elektr signali va rostlik jadvalining o‘zgarishini kuzating.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm" id="btnGateAnd" onclick="selectGate('AND')" style="background:#ca8a04; color:#fff; font-weight:700;">AND (Ko‘paytirish)</button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnGateOr" onclick="selectGate('OR')" style="font-weight:700;">OR (Qo‘shish)</button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnGateXor" onclick="selectGate('XOR')" style="font-weight:700;">XOR (Inkor-Yoki)</button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnGateNot" onclick="selectGate('NOT')" style="font-weight:700;">NOT (Inkor)</button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnGateNand" onclick="selectGate('NAND')" style="font-weight:700;">NAND</button>
+        </div>
+    </div>
+
+    <!-- Interaktiv Sxema va Boshqaruv (2 ustun) -->
+    <div class="grid grid-cols-2" style="gap: 1.5rem; align-items: start;">
+        
+        <!-- Chap: Interaktiv Sxema doskasi -->
+        <div style="background: #1e293b; border-radius: var(--radius-sm); padding: 1.25rem; color: #fff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+                <span style="font-weight: 800; font-size: 0.95rem; color: #facc15;">
+                    Sxema: <span id="gateTitleDisplay">AND (Mantiqiy KO‘PAYTIRISH)</span>
+                </span>
+                <span style="font-family: monospace; font-size: 0.85rem; color: #94a3b8;" id="gateFormulaDisplay">
+                    Formula: Y = A · B
+                </span>
+            </div>
+
+            <!-- Kalitlar va Ventil Animatsiyasi -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 0;">
+                <!-- Kirish kalitlari -->
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <button type="button" class="btn btn-sm" id="btnSwitchA" onclick="toggleSwitch('A')" style="background:#0284c7; color:#fff; font-weight:800; width: 85px;">
+                            A = <span id="valA">0</span>
+                        </button>
+                        <div id="wireA" style="width: 50px; height: 4px; background: #475569; transition: background 0.2s;"></div>
+                    </div>
+
+                    <div id="wrapperSwitchB" style="display: flex; align-items: center; gap: 0.75rem;">
+                        <button type="button" class="btn btn-sm" id="btnSwitchB" onclick="toggleSwitch('B')" style="background:#0284c7; color:#fff; font-weight:800; width: 85px;">
+                            B = <span id="valB">0</span>
+                        </button>
+                        <div id="wireB" style="width: 50px; height: 4px; background: #475569; transition: background 0.2s;"></div>
+                    </div>
+                </div>
+
+                <!-- Markaziy Ventil belgisi -->
+                <div id="gateVisualBox" style="background: #334155; border: 2px solid #64748b; border-radius: 12px; padding: 1rem 1.25rem; text-align: center; min-width: 110px;">
+                    <div style="font-size: 1.6rem; font-weight: 900; color: #facc15;" id="gateSymbol">AND</div>
+                    <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Mantiqiy ventil</div>
+                </div>
+
+                <!-- Chiqish simi va Lampochka -->
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div id="wireOut" style="width: 50px; height: 4px; background: #475569; transition: background 0.2s;"></div>
+                    <div style="text-align: center;">
+                        <div id="bulbIcon" style="font-size: 2.5rem; filter: grayscale(100%); transition: filter 0.2s ease, transform 0.2s ease;">
+                            💡
+                        </div>
+                        <div id="bulbStatusLabel" style="font-size: 0.78rem; font-weight: 800; color: #94a3b8; margin-top: 2px;">
+                            Y = 0 (O‘chiq)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.78rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 0.6rem; margin-top: 0.5rem;">
+                💡 <em>A va B tugmachalarini bosib qiymatlarni 0 yoki 1 ga o‘zgartiring.</em>
+            </div>
+        </div>
+
+        <!-- O'ng: Rostlik Jadvali (Truth Table) -->
+        <div>
+            <div style="font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span>📋 Rostlik Jadvali (Truth Table):</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Sariq qator = Hozirgi holat</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table" style="text-align: center; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th>Kirish A</th>
+                            <th id="thInputB">Kirish B</th>
+                            <th style="color: #2563eb;">Chiqish (Y)</th>
+                            <th>Mantiqiy holat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="truthTableBody">
+                        <!-- JS orqali to'ldiriladi -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2-MODUL: IKKILIK JAMLAGICH (HALF-ADDER) -->
+<div id="moduleAdder" class="card" style="display: none; margin-bottom: 1.5rem;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #0369a1; margin: 0;">
+            🧮 1-bitli Ikkilik Jamlagich (Half-Adder) Modeli
+        </h2>
+        <p style="font-size: 0.82rem; color: #0284c7; margin-top: 0.2rem;">
+            Protsessor ichida ikkita 1-bitli sonni qo‘shish: <code>Sum = A ⊕ B</code> (Yig‘indi) va <code>Carry = A · B</code> (Katta razryadga o‘tish).
+        </p>
+    </div>
+
+    <div style="background: #0f172a; border-radius: var(--radius-sm); padding: 1.25rem; color: #fff; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 0.6rem; margin-bottom: 1rem;">
+            <div style="font-size: 0.95rem; font-weight: 800; color: #38bdf8;">
+                Matematik amal: <span id="adderMathDisplay" style="font-family: monospace; font-size: 1.1rem; color: #facc15;">0 + 0 = 00₂</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">
+                O‘nlik sanoq tizimida: <strong id="adderDecDisplay" style="color: #4ade80;">0</strong>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 140px 1fr 180px; gap: 1.5rem; align-items: center;">
+            <!-- Kirishlar -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 2px;">Kirish A:</label>
+                    <button type="button" class="btn btn-sm" id="btnAdderA" onclick="toggleAdderSwitch('A')" style="background:#0284c7; color:#fff; font-weight:800; width: 100%;">
+                        A = <span id="valAdderA">0</span>
+                    </button>
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 2px;">Kirish B:</label>
+                    <button type="button" class="btn btn-sm" id="btnAdderB" onclick="toggleAdderSwitch('B')" style="background:#0284c7; color:#fff; font-weight:800; width: 100%;">
+                        B = <span id="valAdderB">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sxema bloklari -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="background: #1e293b; border: 2px solid #0284c7; border-radius: 8px; padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; color: #38bdf8;">XOR ventili</span>
+                    <span style="font-size: 0.8rem; color: #94a3b8;">Yig‘indi (Sum): <strong id="valSumOut" style="color:#facc15; font-size:1rem;">0</strong></span>
+                </div>
+                <div style="background: #1e293b; border: 2px solid #ca8a04; border-radius: 8px; padding: 0.6rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; color: #facc15;">AND ventili</span>
+                    <span style="font-size: 0.8rem; color: #94a3b8;">Ko‘chirish (Carry): <strong id="valCarryOut" style="color:#4ade80; font-size:1rem;">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Chiqish lampochkalari -->
+            <div style="background: #1e293b; border-radius: 8px; padding: 1rem; text-align: center;">
+                <div style="font-weight: 800; color: #facc15; margin-bottom: 0.5rem; font-size: 0.85rem;">
+                    Natijaviy 2-bitli ikkilik son:
+                </div>
+                <div style="font-family: monospace; font-size: 2rem; font-weight: 900; letter-spacing: 4px; color: #4ade80;">
+                    <span id="displayCarryBit">0</span><span id="displaySumBit">0</span><sub style="font-size: 0.8rem; color:#94a3b8;">2</sub>
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+                    (Carry: <span id="txtCarry">0</span>, Sum: <span id="txtSum">0</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Tahlil Qilish Formasi -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Mantiqiy sxema natijalarini portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Mantiqiy amallar, rostlik jadvali tahlili va Half-Adder hisob-kitobini o‘qituvchiga topshiring.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="logicPrediction" class="form-control" placeholder="Masalan: AND ventili faqat ikkala kirish 1 bo‘lgandagina 1 (rost) qiymat qaytaradi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Xulosa) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="logicExplanation" class="form-control" placeholder="Masalan: Mantiqiy ventillar orqali elektr signallarining ikkilik mantiqi tekshirildi va Half-Adder 1+1=10 amalini bajardi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="saveLogicExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // MANTIQIY ELEMENTLAR & SXEMOTEXNIKA ENGINE
+    // ==========================================
+
+    let activeLogicTab = 'gates';
+    let currentGate = 'AND';
+    let switchA = 0;
+    let switchB = 0;
+
+    let adderA = 0;
+    let adderB = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectGate('AND');
+        updateAdder();
+    });
+
+    function switchLogicTab(tab) {
+        activeLogicTab = tab;
+        document.getElementById('tabGates').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabGates').style.background = '';
+        document.getElementById('tabGates').style.color = '';
+        document.getElementById('tabAdder').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabAdder').style.background = '';
+        document.getElementById('tabAdder').style.color = '';
+
+        document.getElementById('moduleGates').style.display = 'none';
+        document.getElementById('moduleAdder').style.display = 'none';
+
+        if (tab === 'gates') {
+            const btn = document.getElementById('tabGates');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#ca8a04';
+            btn.style.color = '#fff';
+            document.getElementById('moduleGates').style.display = 'block';
+            document.getElementById('logicPrediction').value = "AND ventilida faqat ikkala kirish 1 bo‘lgandagina chiroq yonadi.";
+            document.getElementById('logicExplanation').value = "Mantiqiy ko‘paytirish qonuni bo‘yicha rostlik jadvalining barcha holatlari tajribada isbotlandi.";
+        } else {
+            const btn = document.getElementById('tabAdder');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#0284c7';
+            btn.style.color = '#fff';
+            document.getElementById('moduleAdder').style.display = 'block';
+            document.getElementById('logicPrediction').value = "1 va 1 qo‘shilganda ikkilik tizimda 10 (o‘nlikda 2) hosil bo‘lib, Carry=1, Sum=0 bo‘ladi.";
+            document.getElementById('logicExplanation').value = "XOR ventili yig‘indi (Sum), AND ventili esa o‘tish (Carry) razryadini shakllantirib ikkilik arifmetika ta’minlandi.";
+        }
+    }
+
+    function selectGate(gate) {
+        currentGate = gate;
+        document.querySelectorAll('#btnGateAnd, #btnGateOr, #btnGateXor, #btnGateNot, #btnGateNand').forEach(b => {
+            b.className = 'btn btn-sm btn-outline';
+            b.style.background = '';
+            b.style.color = '';
+        });
+
+        const activeBtn = document.getElementById(`btnGate${gate.charAt(0) + gate.slice(1).toLowerCase()}`);
+        if (activeBtn) {
+            activeBtn.className = 'btn btn-sm';
+            activeBtn.style.background = '#ca8a04';
+            activeBtn.style.color = '#fff';
+        }
+
+        const titles = {
+            'AND': 'AND (Mantiqiy KO‘PAYTIRISH)',
+            'OR': 'OR (Mantiqiy QO‘SHISH)',
+            'XOR': 'XOR (Inkor-Yoki / Ayiruvchi)',
+            'NOT': 'NOT (Mantiqiy INKOR)',
+            'NAND': 'NAND (Inkor-Ko‘paytirish)'
+        };
+        const formulas = {
+            'AND': 'Formula: Y = A · B',
+            'OR': 'Formula: Y = A + B',
+            'XOR': 'Formula: Y = A ⊕ B',
+            'NOT': 'Formula: Y = ¬A',
+            'NAND': 'Formula: Y = ¬(A · B)'
+        };
+
+        document.getElementById('gateTitleDisplay').innerText = titles[gate] || gate;
+        document.getElementById('gateFormulaDisplay').innerText = formulas[gate] || '';
+        document.getElementById('gateSymbol').innerText = gate;
+
+        if (gate === 'NOT') {
+            document.getElementById('wrapperSwitchB').style.display = 'none';
+            document.getElementById('thInputB').style.display = 'none';
+        } else {
+            document.getElementById('wrapperSwitchB').style.display = 'flex';
+            document.getElementById('thInputB').style.display = '';
+        }
+
+        renderTruthTable();
+        updateGateSimulation();
+    }
+
+    function toggleSwitch(which) {
+        if (which === 'A') {
+            switchA = switchA === 0 ? 1 : 0;
+            document.getElementById('valA').innerText = switchA;
+            document.getElementById('btnSwitchA').style.background = switchA === 1 ? '#16a34a' : '#0284c7';
+        } else {
+            switchB = switchB === 0 ? 1 : 0;
+            document.getElementById('valB').innerText = switchB;
+            document.getElementById('btnSwitchB').style.background = switchB === 1 ? '#16a34a' : '#0284c7';
+        }
+        updateGateSimulation();
+    }
+
+    function computeGateOutput(gate, a, b) {
+        if (gate === 'AND') return (a && b) ? 1 : 0;
+        if (gate === 'OR') return (a || b) ? 1 : 0;
+        if (gate === 'XOR') return (a !== b) ? 1 : 0;
+        if (gate === 'NOT') return a === 0 ? 1 : 0;
+        if (gate === 'NAND') return !(a && b) ? 1 : 0;
+        return 0;
+    }
+
+    function updateGateSimulation() {
+        const out = computeGateOutput(currentGate, switchA, switchB);
+
+        // Simlar rangi
+        document.getElementById('wireA').style.background = switchA === 1 ? '#22c55e' : '#475569';
+        document.getElementById('wireB').style.background = switchB === 1 ? '#22c55e' : '#475569';
+        document.getElementById('wireOut').style.background = out === 1 ? '#facc15' : '#475569';
+
+        // Chiroq
+        const bulb = document.getElementById('bulbIcon');
+        const label = document.getElementById('bulbStatusLabel');
+
+        if (out === 1) {
+            bulb.style.filter = 'drop-shadow(0 0 16px #facc15)';
+            bulb.style.transform = 'scale(1.15)';
+            label.innerText = 'Y = 1 (Yoniq - Rost)';
+            label.style.color = '#facc15';
+        } else {
+            bulb.style.filter = 'grayscale(100%) opacity(40%)';
+            bulb.style.transform = 'scale(1.0)';
+            label.innerText = 'Y = 0 (O‘chiq - Yolg‘on)';
+            label.style.color = '#94a3b8';
+        }
+
+        highlightTruthTableRow();
+    }
+
+    function renderTruthTable() {
+        const tbody = document.getElementById('truthTableBody');
+        tbody.innerHTML = '';
+
+        const combinations = currentGate === 'NOT' ? [[0], [1]] : [[0, 0], [0, 1], [1, 0], [1, 1]];
+
+        combinations.forEach(combo => {
+            const a = combo[0];
+            const b = currentGate === 'NOT' ? 0 : combo[1];
+            const out = computeGateOutput(currentGate, a, b);
+
+            const tr = document.createElement('tr');
+            tr.id = `row_${a}_${b}`;
+            tr.style.transition = 'background 0.2s';
+
+            if (currentGate === 'NOT') {
+                tr.innerHTML = `
+                    <td><strong>${a}</strong></td>
+                    <td style="color:${out===1?'#16a34a':'#dc2626'}; font-weight:800;">${out}</td>
+                    <td>${out === 1 ? 'Rost (True)' : 'Yolg‘on (False)'}</td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td><strong>${a}</strong></td>
+                    <td><strong>${b}</strong></td>
+                    <td style="color:${out===1?'#16a34a':'#dc2626'}; font-weight:800;">${out}</td>
+                    <td>${out === 1 ? 'Rost (True)' : 'Yolg‘on (False)'}</td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+
+        highlightTruthTableRow();
+    }
+
+    function highlightTruthTableRow() {
+        document.querySelectorAll('#truthTableBody tr').forEach(r => {
+            r.style.background = '';
+            r.style.fontWeight = '';
+        });
+        const activeRow = document.getElementById(`row_${switchA}_${switchB}`);
+        if (activeRow) {
+            activeRow.style.background = '#fef9c3';
+            activeRow.style.fontWeight = 'bold';
+        }
+    }
+
+    // 2. HALF-ADDER
+    function toggleAdderSwitch(which) {
+        if (which === 'A') {
+            adderA = adderA === 0 ? 1 : 0;
+            document.getElementById('valAdderA').innerText = adderA;
+            document.getElementById('btnAdderA').style.background = adderA === 1 ? '#16a34a' : '#0284c7';
+        } else {
+            adderB = adderB === 0 ? 1 : 0;
+            document.getElementById('valAdderB').innerText = adderB;
+            document.getElementById('btnAdderB').style.background = adderB === 1 ? '#16a34a' : '#0284c7';
+        }
+        updateAdder();
+    }
+
+    function updateAdder() {
+        const sum = adderA ^ adderB;
+        const carry = adderA & adderB;
+        const dec = (carry * 2) + sum;
+
+        document.getElementById('valSumOut').innerText = sum;
+        document.getElementById('valCarryOut').innerText = carry;
+        document.getElementById('displaySumBit').innerText = sum;
+        document.getElementById('displayCarryBit').innerText = carry;
+        document.getElementById('txtSum').innerText = sum;
+        document.getElementById('txtCarry').innerText = carry;
+
+        document.getElementById('adderMathDisplay').innerText = `${adderA} + ${adderB} = ${carry}${sum}₂`;
+        document.getElementById('adderDecDisplay').innerText = `${dec} (${adderA} + ${adderB} = ${dec})`;
+    }
+
+    // Portfolioga saqlash
+    function saveLogicExperiment() {
+        const explanation = document.getElementById('logicExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni to‘ldiring!");
+            document.getElementById('logicExplanation').focus();
+            return;
+        }
+
+        const prediction = document.getElementById('logicPrediction').value.trim();
+        let details = "";
+        let inputData = {};
+
+        if (activeLogicTab === 'gates') {
+            const out = computeGateOutput(currentGate, switchA, switchB);
+            details = `Ventil: ${currentGate}, A=${switchA}, B=${switchB} -> Chiqish: Y=${out}`;
+            inputData = { module: 'gates', gate: currentGate, a: switchA, b: switchB, output: out };
+        } else {
+            const sum = adderA ^ adderB;
+            const carry = adderA & adderB;
+            details = `Half-Adder: ${adderA} + ${adderB} = ${carry}${sum}₂ (Dec: ${(carry*2)+sum})`;
+            inputData = { module: 'adder', a: adderA, b: adderB, sum: sum, carry: carry };
+        }
+
+        const payload = {
+            lab_type: 'logic',
+            title: `Mantiqiy sxemalar tajribasi (${activeLogicTab === 'gates' ? currentGate : 'Half-Adder'})`,
+            input_data: inputData,
+            prediction: prediction,
+            calculated_result: details,
+            student_explanation: explanation,
+            additional_data: {
+                module: activeLogicTab,
+                gate: currentGate
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ Mantiqiy sxemalar tajribangiz portfolioga muvaffaqiyatli saqlandi!");
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik: " + err);
+        });
+    }
+</script>
+{% endblock %}

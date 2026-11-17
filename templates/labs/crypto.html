@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+{% block title %}Kriptografiya va Axborot Xavfsizligi Laboratoriyasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#fef3c7; color:#92400e; font-weight:700;">
+            🔐 9-sinf Axborot xavfsizligi va shifrlash
+        </span>
+    </div>
+</div>
+
+<!-- Sarlavha -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #d97706; color: #fff; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">🔐</span>
+                Kriptografiya va Axborot Xavfsizligi Laboratoriyasi
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Ma’lumotlarni shifrlash, kalitlar bilan ishlash, binar XOR amallari va parollar mustahkamligini interaktiv tekshiring.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Simulyatsiya Modullari Tanlagichi -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <button type="button" class="btn btn-sm" id="tabCaesar" onclick="switchCryptoTab('caesar')" style="background:#d97706; color:#fff; font-weight:700;">
+        🏛️ 1. Sezar Shifri (Siljish kaliti)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="tabXor" onclick="switchCryptoTab('xor')" style="font-weight:700;">
+        ⚡ 2. Binar XOR Shifrlash (Bit amallari)
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="tabPassword" onclick="switchCryptoTab('password')" style="font-weight:700;">
+        🛡️ 3. Parol Mustahkamligi va Brute-Force Tahlili
+    </button>
+</div>
+
+<!-- 1-MODUL: SEZAR SHIFRI -->
+<div id="moduleCaesar" class="card" style="margin-bottom: 1.5rem;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #92400e; margin: 0;">
+            🏛️ Sezar Shifri (Caesar Cipher) Simulyatori
+        </h2>
+        <p style="font-size: 0.82rem; color: #78350f; margin-top: 0.2rem;">
+            Qadimgi Rim sarkardasi Yuliy Sezar qo‘llagan algoritm: har bir harf alifboda kalit (K) qadam oldinga siljiydi.
+        </p>
+    </div>
+
+    <!-- Kalit slayderi va Alifbo ko'rgazmasi -->
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label style="font-weight: 700; color: #92400e; margin: 0; font-size: 0.88rem;">
+                Siljish kaliti (K): <span id="caesarKeyVal" style="background:#d97706; color:#fff; padding:2px 8px; border-radius:4px; font-size:0.95rem;">3</span>
+            </label>
+            <span style="font-size: 0.8rem; color: #b45309; font-family: monospace;">Formula: C = (P + K) mod 26</span>
+        </div>
+        <input type="range" id="caesarKeySlider" min="1" max="25" value="3" step="1" style="width: 100%; cursor: pointer;" oninput="updateCaesarCipher()">
+        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #b45309; margin-top: 2px;">
+            <span>K = 1</span>
+            <span>K = 3 (Standart Sezar)</span>
+            <span>K = 13 (ROT13)</span>
+            <span>K = 25</span>
+        </div>
+    </div>
+
+    <!-- Matn kiritish va Natija (2 ustun) -->
+    <div class="grid grid-cols-2" style="gap: 1.25rem; margin-bottom: 1rem;">
+        <div>
+            <label class="form-label" style="font-weight: 700;">
+                📝 Asl ochiq matn (Plaintext):
+            </label>
+            <textarea id="caesarInputText" class="form-control" rows="3" oninput="updateCaesarCipher()" placeholder="Shifrlash uchun matn kiriting...">INFORMATIKA FANINI AMALIY TAJRIBALAR BILAN ORGANAMIZ</textarea>
+            <span style="font-size: 0.75rem; color: #64748b;">Lotin harflari (A-Z) real vaqtda kalit bo‘yicha siljiydi.</span>
+        </div>
+
+        <div>
+            <label class="form-label" style="font-weight: 700; color: #b45309;">
+                🔒 Shifrlangan yopiq matn (Ciphertext):
+            </label>
+            <textarea id="caesarOutputText" class="form-control" rows="3" readonly style="background: #f8fafc; font-family: monospace; font-weight: 700; color: #b45309;"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <span style="font-size: 0.75rem; color: #64748b;">Deshifrlash: P = (C - K + 26) mod 26</span>
+                <button type="button" class="btn btn-sm btn-outline" onclick="decryptCaesarDemo()" style="font-size: 0.75rem; padding: 1px 8px;">
+                    🔓 Deshifrlab ko‘rish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alifbo xaritasi vizualizatsiyasi -->
+    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.8rem; overflow-x: auto;">
+        <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">
+            🗺️ Harflar siljish jadvali (Alifbo aylanasi):
+        </div>
+        <div style="font-family: monospace; font-size: 0.85rem; line-height: 1.6; white-space: nowrap;">
+            <div>Asl:  <span style="letter-spacing: 3px; color: #2563eb;">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</span></div>
+            <div>Shifr:<span id="caesarAlphabetMap" style="letter-spacing: 3px; color: #d97706; font-weight: 700;">D E F G H I J K L M N O P Q R S T U V W X Y Z A B C</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2-MODUL: BINAR XOR SHIFRLASH -->
+<div id="moduleXor" class="card" style="display: none; margin-bottom: 1.5rem;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #0284c7; margin: 0;">
+            ⚡ Ikkilik Sanoq Tizimi va XOR Shifrlash Simulyatori
+        </h2>
+        <p style="font-size: 0.82rem; color: #0369a1; margin-top: 0.2rem;">
+            Zamonaviy kompyuterlar xotirasida barcha ma’lumotlar 0 va 1 lardan iborat. XOR (Inkor-Yoki) amali bilan shifrlash va qayta tiklash: <code>(A ⊕ K) ⊕ K = A</code>.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1.25rem; margin-bottom: 1rem;">
+        <div>
+            <label class="form-label" style="font-weight: 700;">1 ta belgi kiriting:</label>
+            <input type="text" id="xorCharInput" maxlength="1" value="A" class="form-control" style="font-size: 1.4rem; font-weight: 800; text-align: center; width: 80px;" oninput="updateXorSimulation()">
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
+                Belgi: <strong id="xorCharDisplay">A</strong> (ASCII: <span id="xorAsciiDisplay">65</span>)
+            </div>
+        </div>
+        <div>
+            <label class="form-label" style="font-weight: 700;">Binar Shifrlash Kaliti (8-bit):</label>
+            <input type="text" id="xorKeyInput" maxlength="8" value="10101010" class="form-control" style="font-family: monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px;" oninput="updateXorSimulation()">
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
+                8 ta '0' yoki '1' raqamini kiritishingiz mumkin.
+            </div>
+        </div>
+    </div>
+
+    <!-- Bitma-bit XOR amali vizual jadvali -->
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-sm); padding: 1rem; font-family: monospace; font-size: 0.95rem;">
+        <div style="color: #0369a1; font-weight: 800; margin-bottom: 0.5rem;">
+            🔬 Bitma-bit XOR (⊕) amali hisob-kitobi:
+        </div>
+        <div style="display: grid; grid-template-columns: 160px 1fr; gap: 0.5rem; align-items: center; line-height: 1.8;">
+            <div>Asl belgi biti:</div>
+            <div id="xorBitsOriginal" style="letter-spacing: 6px; font-weight: 700; color: #2563eb;">0 1 0 0 0 0 0 1</div>
+            <div>Shifrlash kaliti:</div>
+            <div id="xorBitsKey" style="letter-spacing: 6px; font-weight: 700; color: #d97706;">1 0 1 0 1 0 1 0</div>
+            <div style="border-top: 2px solid #0284c7; padding-top: 4px;"><strong>XOR Natijasi:</strong></div>
+            <div id="xorBitsResult" style="border-top: 2px solid #0284c7; padding-top: 4px; letter-spacing: 6px; font-weight: 800; color: #16a34a;">1 1 1 0 1 0 1 1</div>
+            <div style="color: #64748b;">Qayta tiklash:</div>
+            <div id="xorBitsRestored" style="letter-spacing: 6px; color: #0284c7;">0 1 0 0 0 0 0 1 ('A')</div>
+        </div>
+    </div>
+</div>
+
+<!-- 3-MODUL: PAROL MUSTAHKAMLIGI VA BRUTE-FORCE -->
+<div id="modulePassword" class="card" style="display: none; margin-bottom: 1.5rem;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #15803d; margin: 0;">
+            🛡️ Parol Mustahkamligi va Kiberxavfsizlik Tahlilchisi
+        </h2>
+        <p style="font-size: 0.82rem; color: #166534; margin-top: 0.2rem;">
+            Kiberhujumchilar parollarni qancha vaqtda buzishi (Brute-Force) va xavfsiz parollar tuzish qoidalarini amalda tekshiring.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+        <label class="form-label" style="font-weight: 700;">Sinov parolini kiriting:</label>
+        <div style="position: relative; max-width: 480px;">
+            <input type="text" id="passwordInput" class="form-control" value="Parol123" placeholder="Parol yozing..." oninput="analyzePasswordSecurity(this.value)" style="font-size: 1.1rem; font-weight: 700; padding-right: 40px;">
+        </div>
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
+            💡 Namunalar: <code>123456</code>, <code>admin</code>, <code>Parol123</code>, <code>Inf0rm@tika#2026!</code>
+        </div>
+    </div>
+
+    <!-- Xavfsizlik ko'rsatkichi (Metr) -->
+    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-weight: 700; color: var(--primary);">Parol mustahkamlik darajasi:</span>
+            <span id="pwdScoreBadge" style="background:#fee2e2; color:#991b1b; padding:2px 10px; border-radius:12px; font-size:0.85rem; font-weight:800;">Zaif (Juda oson)</span>
+        </div>
+        
+        <!-- Progress bar -->
+        <div style="height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-bottom: 0.75rem;">
+            <div id="pwdProgressBar" style="width: 25%; height: 100%; background: #dc2626; transition: width 0.3s ease, background-color 0.3s ease;"></div>
+        </div>
+
+        <div class="grid grid-cols-2" style="gap: 1rem; font-size: 0.85rem;">
+            <div>
+                <strong>Buzilish ehtimoliy vaqti:</strong>
+                <div id="pwdCrackTime" style="font-size: 1.1rem; font-weight: 800; color: #dc2626; margin-top: 2px;">
+                    0.001 soniya (Bir zumda!)
+                </div>
+            </div>
+            <div>
+                <strong>Entropiya (Murakkablik):</strong>
+                <div id="pwdEntropyVal" style="font-size: 1.1rem; font-weight: 800; color: #2563eb; margin-top: 2px;">
+                    28 bit
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kriteriyalar nazorat ro'yxati -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.82rem;">
+        <div style="font-weight: 800; color: #166534; margin-bottom: 0.4rem;">
+            ✅ Xavfsiz parol talablari:
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div id="chkLen">❌ Kamida 8 ta belgi (Hozirda: <span id="lenCount">8</span>)</div>
+            <div id="chkUpper">❌ Katta harf (A-Z)</div>
+            <div id="chkLower">❌ Kichik harf (a-z)</div>
+            <div id="chkNum">❌ Raqam (0-9)</div>
+            <div id="chkSpecial" style="grid-column: span 2;">❌ Maxsus belgi (!, @, #, $, %, ...)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Tahlil Qilish Formasi -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Kriptografik tajriba natijalarini portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Shifrlash parametrlari, olingan natijalar va axborot xavfsizligi bo‘yicha xulosangizni o‘qituvchiga topshiring.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="cryptoPrediction" class="form-control" placeholder="Masalan: Sezar kaliti 3 bo‘lganda har bir harf 3 ta oldinga siljib shifrlanadi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Xulosa) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="cryptoExplanation" class="form-control" placeholder="Masalan: Simmetrik kalit (K=3) yordamida ochiq matn yopiq shifrga aylandi, kalitsiz uni o‘qib bo‘lmaydi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="saveCryptoExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // KRIPTOGRAFIYA VA AXBOROT XAVFSIZLIGI ENGINE
+    // ==========================================
+
+    let activeCryptoTab = 'caesar';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCaesarCipher();
+        updateXorSimulation();
+        analyzePasswordSecurity(document.getElementById('passwordInput').value);
+    });
+
+    function switchCryptoTab(tab) {
+        activeCryptoTab = tab;
+        document.getElementById('tabCaesar').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabCaesar').style.background = '';
+        document.getElementById('tabCaesar').style.color = '';
+        document.getElementById('tabXor').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabXor').style.background = '';
+        document.getElementById('tabXor').style.color = '';
+        document.getElementById('tabPassword').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabPassword').style.background = '';
+        document.getElementById('tabPassword').style.color = '';
+
+        document.getElementById('moduleCaesar').style.display = 'none';
+        document.getElementById('moduleXor').style.display = 'none';
+        document.getElementById('modulePassword').style.display = 'none';
+
+        if (tab === 'caesar') {
+            const btn = document.getElementById('tabCaesar');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#d97706';
+            btn.style.color = '#fff';
+            document.getElementById('moduleCaesar').style.display = 'block';
+            document.getElementById('cryptoPrediction').value = "Sezar kaliti 3 bo‘lganda matn 3 harf oldinga siljiydi va sirli shifr hosil bo‘ladi.";
+            document.getElementById('cryptoExplanation').value = "Kriptografiya qoidasi bo‘yicha alifbo mod 26 asosida siljitildi va ma’lumot himoyalandi.";
+        } else if (tab === 'xor') {
+            const btn = document.getElementById('tabXor');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#0284c7';
+            btn.style.color = '#fff';
+            document.getElementById('moduleXor').style.display = 'block';
+            document.getElementById('cryptoPrediction').value = "Binar XOR amali bilan belgi shifrlanadi va ikkinchi marta XOR qo‘llanganda asl holiga qaytadi.";
+            document.getElementById('cryptoExplanation').value = "Inkor-yoki (A XOR K) amali qaytariluvchanlik xususiyatiga ega: (A ⊕ K) ⊕ K = A.";
+        } else if (tab === 'password') {
+            const btn = document.getElementById('tabPassword');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#15803d';
+            btn.style.color = '#fff';
+            document.getElementById('modulePassword').style.display = 'block';
+            document.getElementById('cryptoPrediction').value = "Parolga katta harflar, raqamlar va maxsus belgilar qo‘shilsa, buzish vaqti million yillarga uzayadi.";
+            document.getElementById('cryptoExplanation').value = "Entropiya oshishi bilan kombinatsiyalar soni eksponentsial oshadi va Brute-Force hujumi samarasiz bo‘ladi.";
+        }
+    }
+
+    // 1. SEZAR SHIFRI
+    function updateCaesarCipher() {
+        const text = document.getElementById('caesarInputText').value;
+        const key = parseInt(document.getElementById('caesarKeySlider').value) || 3;
+        document.getElementById('caesarKeyVal').innerText = key;
+
+        let cipher = '';
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const upperText = text.toUpperCase();
+
+        for (let i = 0; i < upperText.length; i++) {
+            const ch = upperText[i];
+            const idx = alphabet.indexOf(ch);
+            if (idx !== -1) {
+                const newIdx = (idx + key) % 26;
+                cipher += alphabet[newIdx];
+            } else {
+                cipher += ch;
+            }
+        }
+
+        document.getElementById('caesarOutputText').value = cipher;
+
+        // Alifbo xaritasi
+        let shiftedMap = '';
+        for (let i = 0; i < 26; i++) {
+            shiftedMap += alphabet[(i + key) % 26] + ' ';
+        }
+        document.getElementById('caesarAlphabetMap').innerText = shiftedMap.trim();
+    }
+
+    function decryptCaesarDemo() {
+        const cipher = document.getElementById('caesarOutputText').value;
+        const key = parseInt(document.getElementById('caesarKeySlider').value) || 3;
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let plain = '';
+
+        for (let i = 0; i < cipher.length; i++) {
+            const ch = cipher[i];
+            const idx = alphabet.indexOf(ch);
+            if (idx !== -1) {
+                const newIdx = (idx - key + 26) % 26;
+                plain += alphabet[newIdx];
+            } else {
+                plain += ch;
+            }
+        }
+
+        alert(`🔓 Deshifrlash muvaffaqiyatli!\n\nShifr: ${cipher}\nKalit: K=${key}\nAsl matn: ${plain}`);
+    }
+
+    // 2. BINAR XOR
+    function updateXorSimulation() {
+        const charInput = document.getElementById('xorCharInput').value || 'A';
+        const keyInput = (document.getElementById('xorKeyInput').value || '10101010').padEnd(8, '0').slice(0, 8);
+
+        const charCode = charInput.charCodeAt(0) || 65;
+        document.getElementById('xorCharDisplay').innerText = charInput;
+        document.getElementById('xorAsciiDisplay').innerText = charCode;
+
+        const charBin = charCode.toString(2).padStart(8, '0');
+        document.getElementById('xorBitsOriginal').innerText = charBin.split('').join(' ');
+        document.getElementById('xorBitsKey').innerText = keyInput.split('').join(' ');
+
+        let resultBin = '';
+        for (let i = 0; i < 8; i++) {
+            const b1 = parseInt(charBin[i]);
+            const b2 = parseInt(keyInput[i]) || 0;
+            resultBin += (b1 ^ b2).toString();
+        }
+
+        document.getElementById('xorBitsResult').innerText = resultBin.split('').join(' ');
+
+        // Qayta tiklash
+        let restoredBin = '';
+        for (let i = 0; i < 8; i++) {
+            const b1 = parseInt(resultBin[i]);
+            const b2 = parseInt(keyInput[i]) || 0;
+            restoredBin += (b1 ^ b2).toString();
+        }
+        const restoredCode = parseInt(restoredBin, 2);
+        const restoredChar = String.fromCharCode(restoredCode);
+        document.getElementById('xorBitsRestored').innerText = `${restoredBin.split('').join(' ')} ('${restoredChar}')`;
+    }
+
+    // 3. PAROL MUSTAHKAMLIGI
+    function analyzePasswordSecurity(pwd) {
+        const len = pwd.length;
+        document.getElementById('lenCount').innerText = len;
+
+        const hasUpper = /[A-Z]/.test(pwd);
+        const hasLower = /[a-z]/.test(pwd);
+        const hasNum = /[0-9]/.test(pwd);
+        const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+        document.getElementById('chkLen').innerHTML = len >= 8 ? '✅ Kamida 8 ta belgi' : `❌ Kamida 8 ta belgi (Hozirda: ${len})`;
+        document.getElementById('chkUpper').innerHTML = hasUpper ? '✅ Katta harf (A-Z)' : '❌ Katta harf (A-Z)';
+        document.getElementById('chkLower').innerHTML = hasLower ? '✅ Kichik harf (a-z)' : '❌ Kichik harf (a-z)';
+        document.getElementById('chkNum').innerHTML = hasNum ? '✅ Raqam (0-9)' : '❌ Raqam (0-9)';
+        document.getElementById('chkSpecial').innerHTML = hasSpecial ? '✅ Maxsus belgi' : '❌ Maxsus belgi (!, @, #, $, ...)';
+
+        let poolSize = 0;
+        if (hasLower) poolSize += 26;
+        if (hasUpper) poolSize += 26;
+        if (hasNum) poolSize += 10;
+        if (hasSpecial) poolSize += 33;
+        if (poolSize === 0) poolSize = 26;
+
+        const entropy = len > 0 ? Math.round(len * Math.log2(poolSize)) : 0;
+        document.getElementById('pwdEntropyVal').innerText = `${entropy} bit`;
+
+        const badge = document.getElementById('pwdScoreBadge');
+        const pbar = document.getElementById('pwdProgressBar');
+        const crack = document.getElementById('pwdCrackTime');
+
+        if (len === 0) {
+            badge.innerText = "Bo‘sh";
+            badge.style.background = "#f1f5f9";
+            badge.style.color = "#64748b";
+            pbar.style.width = "0%";
+            crack.innerText = "-";
+        } else if (entropy < 35) {
+            badge.innerText = "Juda zaif";
+            badge.style.background = "#fee2e2";
+            badge.style.color = "#991b1b";
+            pbar.style.width = "20%";
+            pbar.style.background = "#dc2626";
+            crack.innerText = "0.001 soniya (Bir zumda!)";
+            crack.style.color = "#dc2626";
+        } else if (entropy < 50) {
+            badge.innerText = "O‘rtacha";
+            badge.style.background = "#fef3c7";
+            badge.style.color = "#92400e";
+            pbar.style.width = "50%";
+            pbar.style.background = "#f59e0b";
+            crack.innerText = "Taxminan 2 soat";
+            crack.style.color = "#d97706";
+        } else if (entropy < 70) {
+            badge.innerText = "Yaxshi (Mustahkam)";
+            badge.style.background = "#e0f2fe";
+            badge.style.color = "#0369a1";
+            pbar.style.width = "80%";
+            pbar.style.background = "#0284c7";
+            crack.innerText = "Taxminan 300 yil";
+            crack.style.color = "#0284c7";
+        } else {
+            badge.innerText = "Juda kuchli (Buzilmas)";
+            badge.style.background = "#dcfce7";
+            badge.style.color = "#166534";
+            pbar.style.width = "100%";
+            pbar.style.background = "#16a34a";
+            crack.innerText = "Milliardlab yillar!";
+            crack.style.color = "#16a34a";
+        }
+    }
+
+    // Portfolioga saqlash
+    function saveCryptoExperiment() {
+        const explanation = document.getElementById('cryptoExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni to‘ldiring!");
+            document.getElementById('cryptoExplanation').focus();
+            return;
+        }
+
+        const prediction = document.getElementById('cryptoPrediction').value.trim();
+
+        let details = "";
+        let inputData = {};
+
+        if (activeCryptoTab === 'caesar') {
+            const k = document.getElementById('caesarKeySlider').value;
+            const plain = document.getElementById('caesarInputText').value;
+            const cipher = document.getElementById('caesarOutputText').value;
+            details = `Sezar shifri (K=${k}): '${plain.substring(0, 30)}...' -> '${cipher.substring(0, 30)}...'`;
+            inputData = { module: 'caesar', key: k, text: plain, cipher: cipher };
+        } else if (activeCryptoTab === 'xor') {
+            const ch = document.getElementById('xorCharInput').value;
+            const key = document.getElementById('xorKeyInput').value;
+            details = `Binar XOR: Belgi='${ch}', Kalit=${key}, Shifr=${document.getElementById('xorBitsResult').innerText}`;
+            inputData = { module: 'xor', char: ch, key: key };
+        } else {
+            const entropy = document.getElementById('pwdEntropyVal').innerText;
+            const time = document.getElementById('pwdCrackTime').innerText;
+            details = `Parol tahlili: Entropiya=${entropy}, Buzilish vaqti=${time}`;
+            inputData = { module: 'password', entropy: entropy, crack_time: time };
+        }
+
+        const payload = {
+            lab_type: 'crypto',
+            title: `Kriptografiya va axborot xavfsizligi tajribasi (${activeCryptoTab})`,
+            input_data: inputData,
+            prediction: prediction,
+            calculated_result: details,
+            student_explanation: explanation,
+            additional_data: {
+                module: activeCryptoTab
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ Kriptografiya tajribangiz va xulosangiz portfolioga muvaffaqiyatli saqlandi!");
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik: " + err);
+        });
+    }
+</script>
+{% endblock %}

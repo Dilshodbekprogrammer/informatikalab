@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Metodlar kutubxonasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Metodlar kutubxonasi</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Zamonaviy yondashuvlar va xorijiy ilg‘or tajribalar (Buyuk Britaniya, Estoniya, Finlandiya) integratsiyasi
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2" style="gap: 1.5rem;">
+    {% for method in methods %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">
+                        {{ method.foreign_country }} tajribasi
+                    </span>
+                    <span class="role-pill teacher">{{ method.get_order_display|default:forloop.counter }}-metod</span>
+                </div>
+                
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 0.6rem;">
+                    {{ method.title }}
+                </h2>
+
+                <p style="color: #334155; font-size: 0.92rem; margin-bottom: 1rem; line-height: 1.55;">
+                    {{ method.short_description }}
+                </p>
+
+                <div style="background-color: #f8fafc; border-left: 3px solid var(--accent); padding: 0.65rem 0.85rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem;">
+                    <strong>Qachon qo‘llanadi:</strong> {{ method.applicable_when|truncatewords:20 }}
+                </div>
+
+                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">
+                    <strong>9-sinf amaliy misoli:</strong> {{ method.sample_cs_case|truncatewords:18 }}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.6rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'methods:detail' method.slug %}" class="btn btn-outline btn-sm" style="flex: 1;">
+                    To‘liq kartochka
+                </a>
+                <a href="{% url 'lessons:create' %}?method={{ method.id }}" class="btn btn-primary btn-sm" style="flex: 1.2;">
+                    ✨ Shu metod asosida dars yaratish
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

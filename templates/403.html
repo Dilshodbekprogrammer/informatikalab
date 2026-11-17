@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Ruxsat cheklangan (403) - InformatikaLab{% endblock %}
+{% block content %}
+<div class="empty-state">
+    <div class="empty-state-icon">⛔</div>
+    <h2 class="empty-state-title">Ruxsat cheklangan (403 Forbidden)</h2>
+    <p class="empty-state-desc">Ushbu sahifaga yoki ma'lumotga kirish uchun sizda yetarli vakolat mavjud emas. Xavfsizlik choralari tufayli faqat o‘zingizga tegishli dars va topshiriqlarni ko‘rishingiz mumkin.</p>
+    <a href="{% url 'core:home' %}" class="btn btn-primary">Bosh sahifaga qaytish</a>
+</div>
+{% endblock %}

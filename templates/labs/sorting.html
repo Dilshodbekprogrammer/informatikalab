@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+{% block title %}Saralash va Qidiruv Algoritmlari Vizualizatori - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#f3e8ff; color:#7e22ce; font-weight:700;">
+            📊 9-sinf Algoritmlar samaradorligi va saralash
+        </span>
+    </div>
+</div>
+
+<!-- Sarlavha -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #9333ea; color: #fff; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">📊</span>
+                Saralash va Qidiruv Algoritmlari Vizualizatori
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Pufaksimon (Bubble Sort), Tanlash (Selection Sort) va Ikkilik qidiruv (Binary Search) algoritmlarini jonli ustunlar orqali kuzating va tahlil qiling.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Algoritm Tanlagich va Boshqaruv Paneli -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <!-- Algoritmlar -->
+        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm" id="btnAlgoBubble" onclick="selectSortingAlgo('bubble')" style="background:#9333ea; color:#fff; font-weight:700;">
+                🫧 Pufaksimon Saralash (Bubble Sort)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnAlgoSelection" onclick="selectSortingAlgo('selection')" style="font-weight:700;">
+                🎯 Tanlash orqali Saralash (Selection Sort)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnAlgoBinary" onclick="selectSortingAlgo('binary')" style="font-weight:700;">
+                🔍 Ikkilik Qidiruv (Binary Search)
+            </button>
+        </div>
+
+        <!-- Ijro boshqaruvi -->
+        <div style="display: flex; gap: 0.35rem;">
+            <button type="button" class="btn btn-sm" id="btnPlaySort" onclick="startSortingAnimation()" style="background:#16a34a; color:#fff; font-weight:700;">
+                ▶️ Avtomatik saralash
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="stepSortingAnimation()" style="font-weight:700;">
+                ⏭️ Keyingi qadam
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="generateRandomArray()" style="font-weight:700;">
+                🎲 Yangi massiv
+            </button>
+        </div>
+    </div>
+
+    <!-- Massivni mustaqil kiritish maydoni -->
+    <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; font-size: 0.85rem;">
+        <label style="font-weight: 700; margin: 0;">Sonlar massivi:</label>
+        <input type="text" id="arrayCustomInput" value="54, 18, 87, 23, 65, 32, 9" class="form-control" style="max-width: 280px; font-family: monospace; font-size: 0.88rem; padding: 3px 8px;" onchange="applyCustomArray(this.value)">
+        <button type="button" class="btn btn-sm btn-outline" onclick="applyCustomArray(document.getElementById('arrayCustomInput').value)">
+            O‘rnatish
+        </button>
+        <span style="font-size: 0.78rem; color: #64748b;">(Vergul bilan ajratib istalgan 6-10 ta son kiriting)</span>
+    </div>
+</div>
+
+<!-- Asosiy Vizualizatsiya Maydoni -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+    <!-- Ko'rsatkichlar hisoblagichi -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.6rem 1rem; font-size: 0.85rem;">
+        <div style="display: flex; gap: 1.5rem;">
+            <span>Taqqoslanishlar: <strong id="statComparisons" style="color:#2563eb; font-size:1.05rem;">0</strong></span>
+            <span>Almashtirishlar (Swaps): <strong id="statSwaps" style="color:#d97706; font-size:1.05rem;">0</strong></span>
+        </div>
+        <div>
+            Holat: <strong id="statSortingStatus" style="color:#16a34a;">Tayyor</strong>
+        </div>
+    </div>
+
+    <!-- Ustunlar Canvas / Bar konteyneri -->
+    <div id="barsContainer" style="height: 260px; display: flex; align-items: flex-end; justify-content: center; gap: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: var(--radius-sm); padding: 1rem 0; overflow-x: auto;">
+        <!-- JS orqali to'ldiriladi -->
+    </div>
+
+    <!-- Izoh va Murakkablik qutisi -->
+    <div style="margin-top: 1rem; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.82rem;">
+        <div style="font-weight: 800; color: #6b21a8; margin-bottom: 0.25rem;">
+            🧠 Algoritm mantiqi va samaradorligi (O(N²)):
+        </div>
+        <p id="algoExplanationNote" style="color: #581c87; margin: 0; line-height: 1.45;">
+            Pufaksimon saralash (Bubble Sort) ketma-ket ikkita qo‘shni elementni solishtiradi. Agar chapdagi son kattaroq bo‘lsa, ularning o‘rni almashtiriladi. Har bir aylanishda eng katta son oxirga "suzib chiqadi".
+        </p>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Tahlil Qilish Formasi -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Saralash algoritmi natijalarini portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Massiv hajmi, taqqoslashlar soni va algoritm samaradorligi bo‘yicha xulosangizni o‘qituvchiga topshiring.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="sortPrediction" class="form-control" placeholder="Masalan: 7 ta sonli massivni saralash uchun taxminan 20 martadan ortiq taqqoslash kerak bo‘ladi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Xulosa) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="sortExplanation" class="form-control" placeholder="Masalan: Pufaksimon saralashda har bir qo‘shni juftlik solishtirilib, eng katta sonlar oxirgi o‘ringa joylashdi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="saveSortingExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // SARALASH VA QIDIRUV ENGINE
+    // ==========================================
+
+    let currentArray = [54, 18, 87, 23, 65, 32, 9];
+    let selectedAlgo = 'bubble';
+    let comparisonsCount = 0;
+    let swapsCount = 0;
+    let isSorting = false;
+    let sortInterval = null;
+
+    let sortingSteps = [];
+    let currentStepIdx = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectSortingAlgo('bubble');
+    });
+
+    function selectSortingAlgo(algo) {
+        selectedAlgo = algo;
+        stopSorting();
+
+        document.querySelectorAll('#btnAlgoBubble, #btnAlgoSelection, #btnAlgoBinary').forEach(b => {
+            b.className = 'btn btn-sm btn-outline';
+            b.style.background = '';
+            b.style.color = '';
+        });
+
+        if (algo === 'bubble') {
+            const btn = document.getElementById('btnAlgoBubble');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#9333ea';
+            btn.style.color = '#fff';
+            document.getElementById('algoExplanationNote').innerHTML = "Pufaksimon saralash (Bubble Sort): Qo‘shni elementlarni juft-juft taqqoslab, tartibsizlarini almashtiradi. Eng katta element har qadamda o‘ng tomonga o‘tadi.";
+            document.getElementById('sortPrediction').value = "Pufaksimon algoritmda 7 ta son uchun taqqoslashlar soni ko‘p bo‘ladi va qo‘shni sonlar almashadi.";
+            document.getElementById('sortExplanation').value = "Barcha elementlar ketma-ket taqqoslanib, kichikdan kattaga qarab saralangan massiv hosil bo‘ldi.";
+            prepareBubbleSortSteps();
+        } else if (algo === 'selection') {
+            const btn = document.getElementById('btnAlgoSelection');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#2563eb';
+            btn.style.color = '#fff';
+            document.getElementById('algoExplanationNote').innerHTML = "Tanlash orqali saralash (Selection Sort): Har bir qadamda massivning saralanmagan qismidan eng kichik sonni topadi va uni boshiga joylashtiradi.";
+            document.getElementById('sortPrediction').value = "Tanlash usuli eng kichik elementlarni birma-bir topib oldinga qo‘yadi.";
+            document.getElementById('sortExplanation').value = "Har bir siklda minimal qiymat indeksini aniqlash orqali massiv tartiblandi.";
+            prepareSelectionSortSteps();
+        } else if (algo === 'binary') {
+            const btn = document.getElementById('btnAlgoBinary');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#15803d';
+            btn.style.color = '#fff';
+            // Ikkilik qidiruv uchun massiv avval saralangan bo'lishi shart!
+            currentArray.sort((a, b) => a - b);
+            document.getElementById('arrayCustomInput').value = currentArray.join(', ');
+            document.getElementById('algoExplanationNote').innerHTML = "Ikkilik qidiruv (Binary Search): Massivni o‘rtasidan ikkiga bo‘lib tekshiradi. Har bir qadamda qidiruv maydoni 2 baravarga qisqaradi (O(log N)).";
+            document.getElementById('sortPrediction').value = "Ikkilik qidiruv yordamida son atigi 2-3 qadamda topiladi.";
+            document.getElementById('sortExplanation').value = "Massiv saralangan bo‘lgani uchun qidiruv sohasi doim o‘rtasidan qisqartirilib, juda tez natija olindi.";
+            prepareBinarySearchSteps();
+        }
+
+        renderBars();
+    }
+
+    function generateRandomArray() {
+        stopSorting();
+        currentArray = [];
+        for (let i = 0; i < 7; i++) {
+            currentArray.push(Math.floor(Math.random() * 85) + 10);
+        }
+        document.getElementById('arrayCustomInput').value = currentArray.join(', ');
+        selectSortingAlgo(selectedAlgo);
+    }
+
+    function applyCustomArray(text) {
+        stopSorting();
+        const nums = text.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0);
+        if (nums.length >= 4) {
+            currentArray = nums.slice(0, 10);
+            selectSortingAlgo(selectedAlgo);
+        }
+    }
+
+    function renderBars(activeIndices = [], swappedIndices = [], sortedIndices = []) {
+        const container = document.getElementById('barsContainer');
+        container.innerHTML = '';
+
+        const maxVal = Math.max(...currentArray, 100);
+
+        currentArray.forEach((val, idx) => {
+            const barWrapper = document.createElement('div');
+            barWrapper.style.display = 'flex';
+            barWrapper.style.flexDirection = 'column';
+            barWrapper.style.alignItems = 'center';
+            barWrapper.style.gap = '6px';
+
+            const heightPx = Math.max(30, Math.round((val / maxVal) * 200));
+
+            let barColor = '#9333ea';
+            if (activeIndices.includes(idx)) barColor = '#f59e0b'; // Taqqoslanayotgan (Sariq)
+            if (swappedIndices.includes(idx)) barColor = '#dc2626'; // Almashtirilayotgan (Qizil)
+            if (sortedIndices.includes(idx)) barColor = '#16a34a'; // Saralangan (Yashil)
+
+            const bar = document.createElement('div');
+            bar.style.width = '44px';
+            bar.style.height = `${heightPx}px`;
+            bar.style.backgroundColor = barColor;
+            bar.style.borderRadius = '6px 6px 0 0';
+            bar.style.transition = 'height 0.2s ease, background-color 0.2s ease';
+            bar.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+            const labelVal = document.createElement('div');
+            labelVal.style.fontSize = '0.9rem';
+            labelVal.style.fontWeight = '800';
+            labelVal.style.color = '#0f172a';
+            labelVal.innerText = val;
+
+            const labelIdx = document.createElement('div');
+            labelIdx.style.fontSize = '0.72rem';
+            labelIdx.style.color = '#64748b';
+            labelIdx.innerText = `[${idx}]`;
+
+            barWrapper.appendChild(labelVal);
+            barWrapper.appendChild(bar);
+            barWrapper.appendChild(labelIdx);
+
+            container.appendChild(barWrapper);
+        });
+    }
+
+    // Pufaksimon saralash qadamlari
+    function prepareBubbleSortSteps() {
+        sortingSteps = [];
+        currentStepIdx = 0;
+        comparisonsCount = 0;
+        swapsCount = 0;
+        document.getElementById('statComparisons').innerText = '0';
+        document.getElementById('statSwaps').innerText = '0';
+        document.getElementById('statSortingStatus').innerText = "Tayyor";
+
+        const arr = [...currentArray];
+        const n = arr.length;
+        const sorted = [];
+
+        for (let i = 0; i < n - 1; i++) {
+            for (let j = 0; j < n - i - 1; j++) {
+                // Taqqoslash qadami
+                sortingSteps.push({
+                    type: 'compare',
+                    indices: [j, j + 1],
+                    arr: [...arr],
+                    sorted: [...sorted]
+                });
+
+                if (arr[j] > arr[j + 1]) {
+                    // Almashtirish
+                    const temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+
+                    sortingSteps.push({
+                        type: 'swap',
+                        indices: [j, j + 1],
+                        arr: [...arr],
+                        sorted: [...sorted]
+                    });
+                }
+            }
+            sorted.push(n - i - 1);
+        }
+        sorted.push(0);
+
+        sortingSteps.push({
+            type: 'done',
+            indices: [],
+            arr: [...arr],
+            sorted: Array.from({length: n}, (_, i) => i)
+        });
+    }
+
+    // Tanlash saralash qadamlari
+    function prepareSelectionSortSteps() {
+        sortingSteps = [];
+        currentStepIdx = 0;
+        comparisonsCount = 0;
+        swapsCount = 0;
+        document.getElementById('statComparisons').innerText = '0';
+        document.getElementById('statSwaps').innerText = '0';
+
+        const arr = [...currentArray];
+        const n = arr.length;
+        const sorted = [];
+
+        for (let i = 0; i < n - 1; i++) {
+            let minIdx = i;
+            for (let j = i + 1; j < n; j++) {
+                sortingSteps.push({
+                    type: 'compare',
+                    indices: [minIdx, j],
+                    arr: [...arr],
+                    sorted: [...sorted]
+                });
+                if (arr[j] < arr[minIdx]) {
+                    minIdx = j;
+                }
+            }
+            if (minIdx !== i) {
+                const temp = arr[i];
+                arr[i] = arr[minIdx];
+                arr[minIdx] = temp;
+
+                sortingSteps.push({
+                    type: 'swap',
+                    indices: [i, minIdx],
+                    arr: [...arr],
+                    sorted: [...sorted]
+                });
+            }
+            sorted.push(i);
+        }
+        sorted.push(n - 1);
+
+        sortingSteps.push({
+            type: 'done',
+            indices: [],
+            arr: [...arr],
+            sorted: Array.from({length: n}, (_, i) => i)
+        });
+    }
+
+    // Ikkilik qidiruv qadamlari
+    function prepareBinarySearchSteps() {
+        sortingSteps = [];
+        currentStepIdx = 0;
+        comparisonsCount = 0;
+        swapsCount = 0;
+        document.getElementById('statComparisons').innerText = '0';
+        document.getElementById('statSwaps').innerText = '0';
+
+        const arr = [...currentArray];
+        const target = arr[Math.floor(arr.length / 2)];
+        let l = 0, r = arr.length - 1;
+
+        while (l <= r) {
+            const mid = Math.floor((l + r) / 2);
+            sortingSteps.push({
+                type: 'compare',
+                indices: [mid],
+                arr: [...arr],
+                sorted: []
+            });
+
+            if (arr[mid] === target) {
+                sortingSteps.push({
+                    type: 'done',
+                    indices: [mid],
+                    arr: [...arr],
+                    sorted: [mid]
+                });
+                break;
+            } else if (arr[mid] < target) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+    }
+
+    function stepSortingAnimation() {
+        if (currentStepIdx >= sortingSteps.length) {
+            document.getElementById('statSortingStatus').innerText = "Muvaffaqiyatli yakunlandi! ✅";
+            return;
+        }
+
+        const step = sortingSteps[currentStepIdx];
+        currentArray = [...step.arr];
+
+        if (step.type === 'compare') {
+            comparisonsCount++;
+            document.getElementById('statComparisons').innerText = comparisonsCount;
+            document.getElementById('statSortingStatus').innerText = `Taqqoslanmoqda: [${step.indices.join(', ')}]`;
+            renderBars(step.indices, [], step.sorted);
+        } else if (step.type === 'swap') {
+            swapsCount++;
+            document.getElementById('statSwaps').innerText = swapsCount;
+            document.getElementById('statSortingStatus').innerText = `Almashtirildi: [${step.indices.join(', ')}]`;
+            renderBars([], step.indices, step.sorted);
+        } else if (step.type === 'done') {
+            document.getElementById('statSortingStatus').innerText = "Muvaffaqiyatli yakunlandi! ✅";
+            renderBars([], [], step.sorted);
+        }
+
+        currentStepIdx++;
+    }
+
+    function startSortingAnimation() {
+        if (isSorting) {
+            stopSorting();
+            return;
+        }
+
+        isSorting = true;
+        document.getElementById('btnPlaySort').innerText = "⏸️ To‘xtatish";
+
+        sortInterval = setInterval(() => {
+            if (currentStepIdx >= sortingSteps.length) {
+                stopSorting();
+            } else {
+                stepSortingAnimation();
+            }
+        }, 350);
+    }
+
+    function stopSorting() {
+        isSorting = false;
+        if (sortInterval) clearInterval(sortInterval);
+        document.getElementById('btnPlaySort').innerText = "▶️ Avtomatik saralash";
+    }
+
+    // Portfolioga saqlash
+    function saveSortingExperiment() {
+        const explanation = document.getElementById('sortExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni to‘ldiring!");
+            document.getElementById('sortExplanation').focus();
+            return;
+        }
+
+        const prediction = document.getElementById('sortPrediction').value.trim();
+        const payload = {
+            lab_type: 'sorting',
+            title: `Saralash algoritmi tajribasi (${selectedAlgo})`,
+            input_data: {
+                algorithm: selectedAlgo,
+                array: currentArray,
+                comparisons: comparisonsCount,
+                swaps: swapsCount
+            },
+            prediction: prediction,
+            calculated_result: `Algoritm: ${selectedAlgo}, Taqqoslashlar: ${comparisonsCount}, Almashtirishlar: ${swapsCount}, Natija: [${currentArray.join(', ')}]`,
+            student_explanation: explanation,
+            additional_data: {
+                algorithm: selectedAlgo,
+                comparisons: comparisonsCount,
+                swaps: swapsCount
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ Saralash algoritmi tajribangiz portfolioga muvaffaqiyatli saqlandi!");
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik: " + err);
+        });
+    }
+</script>
+{% endblock %}

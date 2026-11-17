@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Mening Portfoliom - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0;">
+    <div>
+        <span class="role-pill student">Shaxsiy Ta'lim Portfoliosi</span>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+            O‘quvchi Portfoliosi
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Yaratgan amaliy mahsulotlaringiz, versiyalar evolyutsiyasi, o‘qituvchi tavsiyalari va yakuniy refleksiyalar
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2" style="gap: 1.5rem;">
+    {% for sub in submissions %}
+        <div class="card" style="border-top: 4px solid {% if sub.status == 'approved' %}#10b981{% elif sub.status == 'needs_revision' %}#f59e0b{% else %}var(--primary){% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        {{ sub.assignment.classroom.name }} | {{ sub.assignment.project_template.title }}
+                    </span>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem;">
+                        {{ sub.lesson_step.title }}
+                    </h3>
+                </div>
+                <span class="role-pill {% if sub.status == 'approved' %}student{% elif sub.status == 'needs_revision' %}teacher{% else %}admin{% endif %}">
+                    {{ sub.get_status_display }}
+                </span>
+            </div>
+
+            <!-- Oxirgi versiya ma'lumoti -->
+            {% with ver=sub.latest_version %}
+                <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                        <strong>Joriy versiya: v{{ ver.version_number }}</strong>
+                        <span>{{ ver.submitted_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    
+                    <p style="font-size: 0.9rem; color: #334155; line-height: 1.5; margin-bottom: 0.5rem;">
+                        {{ ver.content_text|truncatewords:25 }}
+                    </p>
+
+                    {% if ver.individual_contribution %}
+                        <div style="font-size: 0.82rem; color: #1e40af; background: #eff6ff; padding: 0.4rem 0.6rem; border-radius: 4px; margin-top: 0.4rem;">
+                            <strong>Guruhdagi shaxsiy hissa:</strong> {{ ver.individual_contribution }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- O'qituvchi izohi va tavsiyasi -->
+                {% if ver.feedbacks.all %}
+                    <div style="background-color: #fefce8; border-left: 3px solid #eab308; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.85rem; font-size: 0.85rem;">
+                        <strong style="color: #854d0e;">👨‍🏫 O‘qituvchi tavsiyasi:</strong>
+                        {% for fb in ver.feedbacks.all %}
+                            <div style="color: #713f12; margin-top: 0.2rem;">"{{ fb.feedback_text }}"</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Refleksiya holati -->
+            {% if sub.reflection %}
+                <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem; border-radius: 4px; font-size: 0.82rem; color: #166534; margin-bottom: 1rem;">
+                    <strong>✨ Yakuniy refleksiya to‘ldirilgan:</strong>
+                    <div style="margin-top: 0.25rem;">
+                        <em>"{{ sub.reflection.how_improved|truncatewords:15 }}"</em>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Versiyalar tarixi va boshqaruv -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem; font-size: 0.82rem; color: var(--text-muted);">
+                <span>Jami versiyalar: <strong>{{ sub.versions.count }} ta</strong></span>
+                <div style="display: flex; gap: 0.4rem;">
+                    {% if sub.versions.count > 1 %}
+                        <a href="{% url 'portfolio:compare_versions' sub.id %}" class="btn btn-outline btn-sm">
+                            ⚖️ Taqqoslash
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'portfolio:submission_detail' sub.id %}" class="btn btn-primary btn-sm">
+                        To‘liq ko‘rish →
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">📁</div>
+            <h3 class="empty-state-title">Hozircha portfolioda ishlar yo‘q</h3>
+            <p class="empty-state-desc">
+                Loyiha ustaxonasidagi dars topshiriqlarini bajarib topshiring va bu yerda shaxsiy ta'lim portfoliongiz shakllanadi.
+            </p>
+            <a href="{% url 'projects:index' %}" class="btn btn-primary">Loyihalarga o‘tish</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

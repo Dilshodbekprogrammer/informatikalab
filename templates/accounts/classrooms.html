@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Sinflar boshqaruvi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1rem 0;">
+    <div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">Mening sinflarim</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Informatika fani o‘qitilayotgan sinflar va o‘quvchilar ro‘yxati</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-3" style="margin-bottom: 2rem;">
+    {% for cls in classrooms %}
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">{{ cls.name }}</span>
+                <span class="role-pill teacher">{{ cls.grade }}-sinf</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <strong>O‘quv yili:</strong> {{ cls.academic_year }}<br>
+                <strong>O‘qituvchi:</strong> {{ cls.teacher.get_full_name|default:cls.teacher.username }}<br>
+                <strong>O‘quvchilar soni:</strong> {{ cls.students.count }} nafar
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="{% url 'accounts:classroom_detail' cls.id %}" class="btn btn-outline btn-sm" style="flex: 1;">
+                    O‘quvchilarni boshqarish
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">🏫</div>
+            <h3 class="empty-state-title">Hozircha sinflar mavjud emas</h3>
+            <p class="empty-state-desc">Quyidagi forma orqali yangi sinf qo‘shishingiz mumkin.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Yangi sinf qo'shish formasi -->
+<div class="card" style="max-width: 600px;">
+    <h3 class="card-title" style="margin-bottom: 1rem;">➕ Yangi sinf qo‘shish</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-2">
+            <div class="form-group">
+                <label class="form-label">Sinf nomi</label>
+                <input type="text" name="name" class="form-control" placeholder="Masalan: 9-A sinf" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sinf bosqichi</label>
+                <input type="number" name="grade" class="form-control" value="9" min="1" max="11" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">O‘quv yili</label>
+            <input type="text" name="academic_year" class="form-control" value="2024-2025" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Sinfni saqlash</button>
+    </form>
+</div>
+{% endblock %}

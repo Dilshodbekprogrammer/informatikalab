@@ -1,0 +1,607 @@
+{% extends 'base.html' %}
+{% block title %}Kompyuter Tarmoqlari va Marshrutlash Simulyatori - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div>
+        <a href="{% url 'labs:index' %}" class="btn btn-outline btn-sm">← Laboratoriyalar ro‘yxatiga qaytish</a>
+    </div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="role-pill student" style="background:#e0f2fe; color:#0369a1; font-weight:700;">
+            🌐 9-sinf Kompyuter tarmoqlari va Internet
+        </span>
+    </div>
+</div>
+
+<!-- Sarlavha -->
+<div class="card" style="margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="background: #0284c7; color: #fff; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">🌐</span>
+                Kompyuter Tarmoqlari va Marshrutlash Simulyatori
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                Tarmoq topologiyalari (Yulduz, Shina, Halqa), paketlar harakati, kabel uzilishi va IPv4 manzillash qoidalarini jonli animatsiyada o‘rganing.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Simulyatsiya Modullari Tanlagichi -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <button type="button" class="btn btn-sm" id="tabTopology" onclick="switchNetworkTab('topology')" style="background:#0284c7; color:#fff; font-weight:700;">
+        🖥️ 1. Tarmoq Topologiyalari va Paketlar Harakati
+    </button>
+    <button type="button" class="btn btn-sm btn-outline" id="tabSubnet" onclick="switchNetworkTab('subnet')" style="font-weight:700;">
+        🔢 2. IPv4 Manzillash va Qism-tarmoq (Subnetting)
+    </button>
+</div>
+
+<!-- 1-MODUL: TOPOLOGIYALAR VA PAKETLAR HARAKATI -->
+<div id="moduleTopology" class="card" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: #0369a1; margin: 0;">
+                🖥️ Topologiya Simulyatori (Paketlar harakati va Ishonchlilik testi)
+            </h2>
+            <p style="font-size: 0.82rem; color: #0284c7; margin-top: 0.2rem;">
+                Kompyuterlar o‘rtasida xabar yuboring va bitta kabel uzilganda tarmoq o‘zini qanday tutishini tekshiring.
+            </p>
+        </div>
+
+        <!-- Topologiya tanlagich -->
+        <div style="display: flex; gap: 0.35rem;">
+            <button type="button" class="btn btn-sm" id="btnTopoStar" onclick="changeTopology('star')" style="background:#0284c7; color:#fff; font-weight:700;">
+                ⭐ Yulduz (Star)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnTopoBus" onclick="changeTopology('bus')" style="font-weight:700;">
+                🚌 Shina (Bus)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnTopoRing" onclick="changeTopology('ring')" style="font-weight:700;">
+                ⭕ Halqa (Ring)
+            </button>
+        </div>
+    </div>
+
+    <!-- Boshqaruv paneli -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.6rem 1rem; margin-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; font-size: 0.85rem;">
+            <span>Jo‘natuvchi: <strong>PC-1 (192.168.1.10)</strong></span>
+            <span>Qabul qiluvchi: <strong>PC-4 (192.168.1.40)</strong></span>
+        </div>
+
+        <div style="display: flex; gap: 0.4rem;">
+            <button type="button" class="btn btn-sm" id="btnSendPacket" onclick="sendNetworkPacket()" style="background:#16a34a; color:#fff; font-weight:700;">
+                ✉️ Paketni jo‘natish (Ping)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" id="btnBreakCable" onclick="toggleCableBreak()" style="color:#dc2626; border-color:#fca5a5; font-weight:700;">
+                ✂️ Kabelni uzish (Avariya)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="resetNetworkSim()" style="font-weight:700;">
+                🔄 Qayta tiklash
+            </button>
+        </div>
+    </div>
+
+    <!-- Animatsiya Canvas sahnasi (640x320) -->
+    <div style="position: relative; width: 100%; max-width: 680px; height: 320px; margin: 0 auto; background: #ffffff; border: 2px solid #cbd5e1; border-radius: var(--radius-sm); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);">
+        <canvas id="networkCanvas" width="680" height="320" style="position: absolute; top:0; left:0; width: 100%; height: 100%;"></canvas>
+    </div>
+
+    <!-- Tarmoq holati va Pedagogik tahlil qutisi -->
+    <div style="margin-top: 0.75rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.82rem;">
+        <div style="font-weight: 800; color: #1e40af; margin-bottom: 0.25rem;">
+            📊 Topologiya tahlili: <span id="topoStatusBadge" style="color: #16a34a;">Ishchi holatda</span>
+        </div>
+        <p id="topoExplainText" style="color: #1e3a8a; margin: 0; line-height: 1.45;">
+            Yulduz topologiyasida barcha kompyuterlar markaziy kommutatorga (Switch) ulangan. Agar bitta kabel uzilsa, faqat o‘sha kompyuter tarmoqdan ajraladi, qolgan barcha qurilmalar barqaror ishlashda davom etadi.
+        </p>
+    </div>
+</div>
+
+<!-- 2-MODUL: IPV4 VA QISM-TARMOQ (SUBNETTING) -->
+<div id="moduleSubnet" class="card" style="display: none; margin-bottom: 1.5rem;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #15803d; margin: 0;">
+            🔢 IPv4 Manzillash va Qism-tarmoq (Subnetting) Kalkulyatori
+        </h2>
+        <p style="font-size: 0.82rem; color: #166534; margin-top: 0.2rem;">
+            Internetda har bir qurilma o‘zining unikal 32-bitli IP manziliga ega. Tarmoq va tugun qismlarini ajratishni tahlil qiling.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1.25rem; margin-bottom: 1rem;">
+        <div>
+            <label class="form-label" style="font-weight: 700;">IP-manzil:</label>
+            <input type="text" id="ipInput" class="form-control" value="192.168.1.45" oninput="calculateSubnet()" style="font-family: monospace; font-size: 1.05rem; font-weight: 700;">
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
+                Masalan: <code>192.168.1.45</code>, <code>10.0.0.15</code>, <code>172.16.5.20</code>
+            </div>
+        </div>
+
+        <div>
+            <label class="form-label" style="font-weight: 700;">Tarmoq maskasi (CIDR):</label>
+            <select id="cidrSelect" class="form-control" onchange="calculateSubnet()" style="font-family: monospace; font-size: 0.95rem; font-weight: 700;">
+                <option value="24" selected>/24 (255.255.255.0 - Kichik maktab tarmog‘i, 254 ta kompyuter)</option>
+                <option value="16">/16 (255.255.0.0 - Katta shahar/universitet tarmog‘i, 65,534 ta kompyuter)</option>
+                <option value="8">/8 (255.0.0.0 - Global korporativ tarmoq, 16 million ta kompyuter)</option>
+                <option value="28">/28 (255.255.255.240 - Kichik laboratoriya, 14 ta kompyuter)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tahlil natijalari kartochkasi -->
+    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; font-family: monospace; font-size: 0.9rem;">
+        <div class="grid grid-cols-2" style="gap: 1rem;">
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem;">Tarmoq manzili (Network ID):</div>
+                <div id="resNetworkId" style="color: #2563eb; font-weight: 800; font-size: 1.1rem;">192.168.1.0</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem;">Eshittirish manzili (Broadcast):</div>
+                <div id="resBroadcast" style="color: #d97706; font-weight: 800; font-size: 1.1rem;">192.168.1.255</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem;">Birinchi foydali manzil:</div>
+                <div id="resFirstHost" style="color: #16a34a; font-weight: 700;">192.168.1.1</div>
+            </div>
+            <div>
+                <div style="color: #64748b; font-size: 0.8rem;">Oxirgi foydali manzil:</div>
+                <div id="resLastHost" style="color: #16a34a; font-weight: 700;">192.168.1.254</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; font-family: system-ui, sans-serif; font-size: 0.84rem; color: #334155;">
+            <strong>Maksimal qurilmalar sig‘imi:</strong> <span id="resTotalHosts" style="font-weight: 800; color: #0284c7;">254 ta kompyuter</span>.
+            <div style="margin-top: 4px; font-size: 0.78rem; color: #64748b;">
+                Formula: <code>2^(32 - Mask) - 2</code> (Tarmoq manzili va Broadcast ajratilgani uchun -2 olinadi).
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Natijani Saqlash va Tahlil Qilish Formasi -->
+<div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+                💾 Tarmoq simulyatsiyasi natijalarini portfolioga saqlash
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Topologiya tahlili, paket uzatish tezligi va tarmoq ishonchliligi bo‘yicha xulosangizni o‘qituvchiga topshiring.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2" style="gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                🔬 1. O‘quvchining oldindan taxmini (Gipoteza)
+            </label>
+            <input type="text" id="netPrediction" class="form-control" placeholder="Masalan: Yulduz topologiyasida kabel uzilsa faqat 1 ta kompyuter uziladi, shinada esa butun tarmoq to‘xtaydi...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">
+                📊 2. Nima o‘zgardi va algoritm qanday ishladi? (Xulosa) <span style="color:#dc2626;">*</span>
+            </label>
+            <input type="text" id="netExplanation" class="form-control" placeholder="Masalan: Markazlashtirilgan kommutator (Switch) orqali paketlar faqat kerakli manzilga yo‘naltirildi va yuqori ishonchlilik ta’minlandi." required>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="saveNetworkExperiment()">
+            💾 Natija va xulosani portfolioga saqlash
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // KOMPYUTER TARMOQLARI ENGINE
+    // ==========================================
+
+    let activeNetworkTab = 'topology';
+    let currentTopology = 'star';
+    let isCableBroken = false;
+    let packetAnim = null;
+
+    let netCanvas, netCtx;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        netCanvas = document.getElementById('networkCanvas');
+        netCtx = netCanvas.getContext('2d');
+        drawTopology();
+        calculateSubnet();
+    });
+
+    function switchNetworkTab(tab) {
+        activeNetworkTab = tab;
+        document.getElementById('tabTopology').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabTopology').style.background = '';
+        document.getElementById('tabTopology').style.color = '';
+        document.getElementById('tabSubnet').className = 'btn btn-sm btn-outline';
+        document.getElementById('tabSubnet').style.background = '';
+        document.getElementById('tabSubnet').style.color = '';
+
+        document.getElementById('moduleTopology').style.display = 'none';
+        document.getElementById('moduleSubnet').style.display = 'none';
+
+        if (tab === 'topology') {
+            const btn = document.getElementById('tabTopology');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#0284c7';
+            btn.style.color = '#fff';
+            document.getElementById('moduleTopology').style.display = 'block';
+            drawTopology();
+            document.getElementById('netPrediction').value = "Yulduz topologiyasida bitta kabel uzilsa ham, tarmoqning qolgan qismi ishlashda davom etadi.";
+            document.getElementById('netExplanation').value = "Switch orqali har bir tugun mustaqil kanalga ega bo‘lgani sababli bitta nuqtadagi nosozlik butun tarmoqni to‘xtatmaydi.";
+        } else {
+            const btn = document.getElementById('tabSubnet');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#15803d';
+            btn.style.color = '#fff';
+            document.getElementById('moduleSubnet').style.display = 'block';
+            document.getElementById('netPrediction').value = "/24 maskasida 254 ta kompyuter foydalanishi mumkin bo‘ladi.";
+            document.getElementById('netExplanation').value = "32 bitdan 24 biti tarmoqqa, 8 biti tugunlarga ajratilgan (2^8 - 2 = 254 ta kompyuter).";
+        }
+    }
+
+    function changeTopology(topo) {
+        currentTopology = topo;
+        isCableBroken = false;
+        document.querySelectorAll('#btnTopoStar, #btnTopoBus, #btnTopoRing').forEach(b => {
+            b.className = 'btn btn-sm btn-outline';
+            b.style.background = '';
+            b.style.color = '';
+        });
+
+        if (topo === 'star') {
+            const btn = document.getElementById('btnTopoStar');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#0284c7';
+            btn.style.color = '#fff';
+            document.getElementById('topoExplainText').innerText = "Yulduz topologiyasida barcha kompyuterlar markaziy kommutatorga (Switch) ulangan. Bitta kabel uzilsa faqat bitta kompyuter uziladi, tarmoq ishlashda davom etadi.";
+        } else if (topo === 'bus') {
+            const btn = document.getElementById('btnTopoBus');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#d97706';
+            btn.style.color = '#fff';
+            document.getElementById('topoExplainText').innerText = "Shina topologiyasida barcha kompyuterlar bitta umumiy magistral kabelga ulanadi. Agar magistral kabel uzilsa, butun tarmoq bir lahzada to‘xtaydi!";
+        } else if (topo === 'ring') {
+            const btn = document.getElementById('btnTopoRing');
+            btn.className = 'btn btn-sm';
+            btn.style.background = '#9333ea';
+            btn.style.color = '#fff';
+            document.getElementById('topoExplainText').innerText = "Halqa topologiyasida har bir kompyuter yonidagi kompyuterga aylanma ulanadi. Bitta joy uzilsa, aylanma uzilib ma’lumot harakati qiyinlashadi.";
+        }
+
+        document.getElementById('topoStatusBadge').innerText = "Ishchi holatda";
+        document.getElementById('topoStatusBadge').style.color = "#16a34a";
+        drawTopology();
+    }
+
+    function toggleCableBreak() {
+        isCableBroken = !isCableBroken;
+        const badge = document.getElementById('topoStatusBadge');
+        if (isCableBroken) {
+            badge.innerText = "Diqqat: Kabel uzildi! (Avariya holati)";
+            badge.style.color = "#dc2626";
+        } else {
+            badge.innerText = "Ishchi holatda";
+            badge.style.color = "#16a34a";
+        }
+        drawTopology();
+    }
+
+    function resetNetworkSim() {
+        isCableBroken = false;
+        document.getElementById('topoStatusBadge').innerText = "Ishchi holatda";
+        document.getElementById('topoStatusBadge').style.color = "#16a34a";
+        drawTopology();
+    }
+
+    function drawTopology(packetProgress = null) {
+        if (!netCtx) return;
+        const w = 680;
+        const h = 320;
+        netCtx.clearRect(0, 0, w, h);
+
+        if (currentTopology === 'star') {
+            drawStarTopology(packetProgress);
+        } else if (currentTopology === 'bus') {
+            drawBusTopology(packetProgress);
+        } else if (currentTopology === 'ring') {
+            drawRingTopology(packetProgress);
+        }
+    }
+
+    function drawStarTopology(packetProgress) {
+        const switchX = 340;
+        const switchY = 160;
+
+        const pcs = [
+            { id: 1, name: "PC-1", x: 120, y: 70 },
+            { id: 2, name: "PC-2", x: 560, y: 70 },
+            { id: 3, name: "PC-3", x: 120, y: 250 },
+            { id: 4, name: "PC-4", x: 560, y: 250 }
+        ];
+
+        // Kabellar
+        pcs.forEach(pc => {
+            const broken = isCableBroken && pc.id === 2; // PC-2 kabeli uzilgan
+            netCtx.strokeStyle = broken ? "#fca5a5" : "#0284c7";
+            netCtx.lineWidth = broken ? 2 : 3;
+            if (broken) netCtx.setLineDash([5, 5]);
+            else netCtx.setLineDash([]);
+
+            netCtx.beginPath();
+            netCtx.moveTo(switchX, switchY);
+            netCtx.lineTo(pc.x, pc.y);
+            netCtx.stroke();
+            netCtx.setLineDash([]);
+
+            if (broken) {
+                netCtx.fillStyle = "#dc2626";
+                netCtx.font = "bold 14px sans-serif";
+                netCtx.fillText("✂️ Uzilgan!", (switchX + pc.x)/2 - 20, (switchY + pc.y)/2);
+            }
+        });
+
+        // Markaziy Switch
+        netCtx.fillStyle = "#0f172a";
+        netCtx.beginPath();
+        netCtx.roundRect(switchX - 45, switchY - 25, 90, 50, 8);
+        netCtx.fill();
+        netCtx.fillStyle = "#ffffff";
+        netCtx.font = "bold 12px sans-serif";
+        netCtx.textAlign = "center";
+        netCtx.fillText("Switch / Router", switchX, switchY + 4);
+
+        // Kompyuterlar
+        pcs.forEach(pc => {
+            drawPC(pc.x, pc.y, pc.name, pc.id === 1 ? '#16a34a' : (pc.id === 4 ? '#2563eb' : '#475569'));
+        });
+
+        // Paket harakati animatsiyasi
+        if (packetProgress !== null) {
+            let px, py;
+            if (packetProgress < 0.5) {
+                // PC-1 -> Switch
+                const t = packetProgress * 2;
+                px = 120 + (switchX - 120) * t;
+                py = 70 + (switchY - 70) * t;
+            } else {
+                // Switch -> PC-4
+                const t = (packetProgress - 0.5) * 2;
+                px = switchX + (560 - switchX) * t;
+                py = switchY + (250 - switchY) * t;
+            }
+            drawPacket(px, py);
+        }
+    }
+
+    function drawBusTopology(packetProgress) {
+        const lineY = 160;
+        const pcs = [
+            { id: 1, name: "PC-1", x: 120, y: 70 },
+            { id: 2, name: "PC-2", x: 260, y: 70 },
+            { id: 3, name: "PC-3", x: 400, y: 250 },
+            { id: 4, name: "PC-4", x: 560, y: 250 }
+        ];
+
+        // Magistral shina
+        if (isCableBroken) {
+            // Magistral uzilgan
+            netCtx.strokeStyle = "#dc2626";
+            netCtx.lineWidth = 4;
+            netCtx.beginPath();
+            netCtx.moveTo(80, lineY);
+            netCtx.lineTo(330, lineY);
+            netCtx.stroke();
+
+            netCtx.beginPath();
+            netCtx.moveTo(350, lineY);
+            netCtx.lineTo(600, lineY);
+            netCtx.stroke();
+
+            netCtx.fillStyle = "#dc2626";
+            netCtx.font = "bold 14px sans-serif";
+            netCtx.fillText("💥 Magistral uzildi!", 340, lineY - 10);
+        } else {
+            netCtx.strokeStyle = "#d97706";
+            netCtx.lineWidth = 6;
+            netCtx.beginPath();
+            netCtx.moveTo(80, lineY);
+            netCtx.lineTo(600, lineY);
+            netCtx.stroke();
+        }
+
+        // Ulanish kabellari
+        pcs.forEach(pc => {
+            netCtx.strokeStyle = "#94a3b8";
+            netCtx.lineWidth = 2;
+            netCtx.beginPath();
+            netCtx.moveTo(pc.x, pc.y);
+            netCtx.lineTo(pc.x, lineY);
+            netCtx.stroke();
+        });
+
+        pcs.forEach(pc => {
+            drawPC(pc.x, pc.y, pc.name, pc.id === 1 ? '#16a34a' : (pc.id === 4 ? '#2563eb' : '#475569'));
+        });
+
+        if (packetProgress !== null && !isCableBroken) {
+            const px = 120 + (560 - 120) * packetProgress;
+            drawPacket(px, lineY);
+        }
+    }
+
+    function drawRingTopology(packetProgress) {
+        const cx = 340;
+        const cy = 160;
+        const r = 110;
+
+        const pcs = [
+            { id: 1, name: "PC-1", angle: Math.PI },
+            { id: 2, name: "PC-2", angle: -Math.PI / 2 },
+            { id: 3, name: "PC-3", angle: 0 },
+            { id: 4, name: "PC-4", angle: Math.PI / 2 }
+        ];
+
+        // Halqa chizig'i
+        netCtx.strokeStyle = isCableBroken ? "#fca5a5" : "#9333ea";
+        netCtx.lineWidth = 4;
+        if (isCableBroken) netCtx.setLineDash([8, 8]);
+        else netCtx.setLineDash([]);
+        netCtx.beginPath();
+        netCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        netCtx.stroke();
+        netCtx.setLineDash([]);
+
+        pcs.forEach(pc => {
+            const x = cx + r * Math.cos(pc.angle);
+            const y = cy + r * Math.sin(pc.angle);
+            drawPC(x, y, pc.name, pc.id === 1 ? '#16a34a' : (pc.id === 4 ? '#2563eb' : '#475569'));
+        });
+
+        if (packetProgress !== null && !isCableBroken) {
+            const currentAngle = Math.PI - (Math.PI / 2) * packetProgress;
+            const px = cx + r * Math.cos(currentAngle);
+            const py = cy + r * Math.sin(currentAngle);
+            drawPacket(px, py);
+        }
+    }
+
+    function drawPC(x, y, name, color) {
+        netCtx.fillStyle = color;
+        netCtx.beginPath();
+        netCtx.roundRect(x - 28, y - 18, 56, 36, 6);
+        netCtx.fill();
+
+        netCtx.fillStyle = "#ffffff";
+        netCtx.font = "bold 11px sans-serif";
+        netCtx.textAlign = "center";
+        netCtx.fillText(name, x, y + 4);
+    }
+
+    function drawPacket(x, y) {
+        netCtx.fillStyle = "#f59e0b";
+        netCtx.beginPath();
+        netCtx.arc(x, y, 9, 0, Math.PI * 2);
+        netCtx.fill();
+        netCtx.strokeStyle = "#ffffff";
+        netCtx.lineWidth = 2;
+        netCtx.stroke();
+    }
+
+    function sendNetworkPacket() {
+        if (isCableBroken && (currentTopology === 'bus' || currentTopology === 'ring')) {
+            alert("❌ Xatolik: Magistral kabel uzilgan! Paket manzilga yetib bora olmaydi (Destination Host Unreachable).");
+            return;
+        }
+
+        let progress = 0;
+        const step = 0.02;
+
+        if (packetAnim) clearInterval(packetAnim);
+
+        packetAnim = setInterval(() => {
+            progress += step;
+            if (progress >= 1) {
+                clearInterval(packetAnim);
+                drawTopology(null);
+                alert("✅ Ping muvaffaqiyatli: 64 bayt PC-4 (192.168.1.40) ga yetkazildi! Vaqt: 2.4 ms.");
+            } else {
+                drawTopology(progress);
+            }
+        }, 30);
+    }
+
+    // IPV4 KALKULYATORI
+    function calculateSubnet() {
+        const ip = document.getElementById('ipInput').value.trim() || '192.168.1.45';
+        const cidr = parseInt(document.getElementById('cidrSelect').value) || 24;
+
+        const parts = ip.split('.').map(p => parseInt(p) || 0);
+        if (parts.length !== 4) return;
+
+        let ipNum = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
+        let maskNum = -1 << (32 - cidr);
+
+        let netNum = (ipNum & maskNum) >>> 0;
+        let bcastNum = (netNum | (~maskNum)) >>> 0;
+
+        function numToIp(n) {
+            return [
+                (n >>> 24) & 255,
+                (n >>> 16) & 255,
+                (n >>> 8) & 255,
+                n & 255
+            ].join('.');
+        }
+
+        const netId = numToIp(netNum);
+        const bcast = numToIp(bcastNum);
+        const firstHost = numToIp(netNum + 1);
+        const lastHost = numToIp(bcastNum - 1);
+        const total = Math.max(0, Math.pow(2, 32 - cidr) - 2);
+
+        document.getElementById('resNetworkId').innerText = netId;
+        document.getElementById('resBroadcast').innerText = bcast;
+        document.getElementById('resFirstHost').innerText = firstHost;
+        document.getElementById('resLastHost').innerText = lastHost;
+        document.getElementById('resTotalHosts').innerText = `${total.toLocaleString()} ta kompyuter`;
+    }
+
+    // Portfolioga saqlash
+    function saveNetworkExperiment() {
+        const explanation = document.getElementById('netExplanation').value.trim();
+        if (!explanation) {
+            alert("Iltimos, xulosangizni to‘ldiring!");
+            document.getElementById('netExplanation').focus();
+            return;
+        }
+
+        const prediction = document.getElementById('netPrediction').value.trim();
+        const payload = {
+            lab_type: 'network',
+            title: `Kompyuter tarmoqlari tajribasi (${currentTopology} topologiyasi)`,
+            input_data: {
+                module: activeNetworkTab,
+                topology: currentTopology,
+                ip: document.getElementById('ipInput').value,
+                cidr: document.getElementById('cidrSelect').value
+            },
+            prediction: prediction,
+            calculated_result: `Topologiya: ${currentTopology}, Holat: ${isCableBroken ? 'Uzilgan' : 'Ishchi'}, Tarmoq ID: ${document.getElementById('resNetworkId').innerText}`,
+            student_explanation: explanation,
+            additional_data: {
+                topology: currentTopology,
+                cable_broken: isCableBroken
+            }
+        };
+
+        fetch("{% url 'labs:save_experiment_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ Tarmoq simulyatsiyasi tajribangiz portfolioga muvaffaqiyatli saqlandi!");
+                window.location.href = "{% url 'labs:index' %}";
+            } else {
+                alert("Xatolik: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Saqlashda xatolik: " + err);
+        });
+    }
+</script>
+{% endblock %}

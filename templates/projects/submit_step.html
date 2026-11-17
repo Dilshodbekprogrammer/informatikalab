@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}{{ step.title }} - Mahsulot topshirish{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.25rem;">
+    <a href="{% url 'projects:assignment_detail' assignment.id %}" class="btn btn-outline btn-sm">← Loyiha maydoniga qaytish</a>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-md);">
+    <div class="card-header">
+        <div>
+            <span class="role-pill teacher">{{ step.lesson_number }}-dars topshirig‘i</span>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+                {{ step.title }}
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Loyiha: {{ assignment.project_template.title }} ({{ assignment.classroom.name }})
+            </p>
+        </div>
+        <div>
+            <span class="role-pill student">
+                Yangi versiya: v{% if submission.latest_version %}{{ submission.latest_version.version_number|add:1 }}{% else %}1{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Ko'rsatma va Kutiladigan mahsulot -->
+    <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.25rem;">
+        <div style="font-size: 0.9rem; color: #334155; margin-bottom: 0.5rem;">
+            <strong>🎯 Topshiriq:</strong> {{ step.task_details }}
+        </div>
+        <div style="font-size: 0.88rem; color: #166534; background: #f0fdf4; padding: 0.6rem; border-radius: 4px; border: 1px solid #bbf7d0;">
+            <strong>📦 Kutiladigan mahsulot:</strong> {{ step.expected_artifact }}
+        </div>
+    </div>
+
+    <!-- Tavsiya etilgan simulyatsiya laboratoriyasi havolasi -->
+    {% if step.recommended_lab %}
+        <div style="background-color: #ecfeff; border: 1px solid #a5f3fc; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <strong style="color: #0e7490; font-size: 0.9rem;">🔬 Ushbu bosqich uchun tavsiya etilgan simulyatsiya:</strong>
+                <div style="font-size: 0.82rem; color: #155e75; margin-top: 2px;">
+                    Mahsulotni tayyorlashdan oldin laboratoriyada tajriba o‘tkazib, natijasini pastda biriktiring.
+                </div>
+            </div>
+            <div>
+                {% if step.recommended_lab == 'data' %}
+                    <a href="{% url 'labs:data_lab' %}" target="_blank" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight: 700;">📊 Ma’lumotlar laboratoriyasi ↗</a>
+                {% elif step.recommended_lab == 'scratch' %}
+                    <a href="{% url 'labs:scratch' %}" target="_blank" class="btn btn-sm" style="background:#ea580c; color:#fff; font-weight: 700;">🐱 Scratch laboratoriyasi ↗</a>
+                {% elif step.recommended_lab == 'crypto' %}
+                    <a href="{% url 'labs:crypto' %}" target="_blank" class="btn btn-sm" style="background:#d97706; color:#fff; font-weight: 700;">🔐 Kriptografiya laboratoriyasi ↗</a>
+                {% elif step.recommended_lab == 'network' %}
+                    <a href="{% url 'labs:network' %}" target="_blank" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight: 700;">🌐 Tarmoqlar simulyatori ↗</a>
+                {% elif step.recommended_lab == 'sorting' %}
+                    <a href="{% url 'labs:sorting' %}" target="_blank" class="btn btn-sm" style="background:#9333ea; color:#fff; font-weight: 700;">📊 Saralash vizualizatori ↗</a>
+                {% elif step.recommended_lab == 'logic' %}
+                    <a href="{% url 'labs:logic' %}" target="_blank" class="btn btn-sm" style="background:#ca8a04; color:#fff; font-weight: 700;">🔌 Mantiqiy sxemalar ↗</a>
+                {% elif step.recommended_lab == 'python' %}
+                    <a href="{% url 'labs:python' %}" target="_blank" class="btn btn-sm" style="background:#16a34a; color:#fff; font-weight: 700;">🐍 Python terminali ↗</a>
+                {% else %}
+                    <a href="{% url 'labs:algorithms' %}" target="_blank" class="btn btn-sm btn-primary" style="font-weight: 700;">⚡ Algoritmlar laboratoriyasi ↗</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Oldingi versiyadagi o'qituvchi izohi (agar bo'lsa) -->
+    {% if submission.latest_version and submission.latest_version.feedbacks.all %}
+        <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+            <div>
+                <strong>👨‍🏫 Oldingi versiya (v{{ submission.latest_version.version_number }}) bo‘yicha o‘qituvchi tavsiyasi:</strong>
+                {% for fb in submission.latest_version.feedbacks.all %}
+                    <p style="margin-top: 0.25rem; font-size: 0.9rem; color: #92400e;">
+                        "{{ fb.feedback_text }}"
+                    </p>
+                {% endfor %}
+                <div style="margin-top: 0.4rem; font-size: 0.82rem; color: #78350f;">
+                    * Ushbu yangi versiyada o‘qituvchi ko‘rsatgan kamchiliklarni to‘g‘rilang.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Mahsulot topshirish formasi -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="is_draft" id="isDraftInput" value="false">
+
+        <div class="form-group">
+            <label class="form-label">Mahsulot / Yechim sarlavhasi</label>
+            <input type="text" name="title" class="form-control" value="{{ step.lesson_number }}-dars amaliy mahsuloti: {{ step.title }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                📝 Mahsulot mazmuni (Hisobot, tahlil, algoritm kodi yoki tushuntirish)
+                <span style="font-weight: normal; color: var(--text-muted); font-size: 0.85rem;">(Fayl yoki laboratoriya biriktirilsa, matn ixtiyoriy)</span>
+            </label>
+            <textarea name="content_text" class="form-control" rows="6" placeholder="Yaratgan amaliy mahsulotingiz, natijalaringiz va takliflaringizni yozing (yoki pastda fayl biriktiring)...">{% if submission.latest_version %}{{ submission.latest_version.content_text }}{% endif %}</textarea>
+        </div>
+
+        {% if user_group %}
+            <!-- Guruhli loyiha bo'lsa shaxsiy hissa -->
+            <div class="form-group" style="background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: var(--radius-sm);">
+                <label class="form-label" style="color: #1e40af; font-weight: 700;">
+                    👥 Guruh loyihasidagi shaxsiy hissangiz (Individual hissa - ixtiyoriy)
+                </label>
+                <textarea name="individual_contribution" class="form-control" rows="3" placeholder="Siz ushbu guruh ishida qaysi aniq qismni bajardingiz? (Masalan: formulani hisoblash, ma'lumot to‘plash yoki xulosa tayyorlash)">{% if submission.latest_version %}{{ submission.latest_version.individual_contribution }}{% endif %}</textarea>
+                <small class="form-help">Siz a'zo bo‘lgan guruh: <strong>{{ user_group.name }}</strong> (Yetakchi: {{ user_group.leader.get_full_name|default:user_group.leader.username }})</small>
+            </div>
+        {% endif %}
+
+        <!-- Laboratoriya natijasini biriktirish -->
+        <div class="form-group" style="background-color: #f0fdfa; border: 1px solid #99f6e4; padding: 1rem; border-radius: var(--radius-sm);">
+            <label class="form-label" style="color: #115e59; font-weight: 700;">
+                🔬 O‘tkazilgan laboratoriya tajribasini biriktirish (ixtiyoriy)
+            </label>
+            <select name="linked_lab_id" class="form-control">
+                <option value="">-- Laboratoriya natijasini tanlash --</option>
+                {% for lab in user_labs %}
+                    <option value="{{ lab.id }}">
+                        {{ lab.title }} ({{ lab.get_lab_type_display }}) - {{ lab.created_at|date:"d.m.Y H:i" }}
+                    </option>
+                {% endfor %}
+            </select>
+            <small class="form-help">Agar avvalroq laboratoriyada tajriba o‘tkazib saqlagan bo‘lsangiz, uni bevosita ushbu mahsulotga biriktirishingiz mumkin.</small>
+        </div>
+
+        <!-- Fayl yuklash -->
+        <div class="form-group">
+            <label class="form-label">📎 Hujjat yoki rasm fayli biriktirish (ixtiyoriy)</label>
+            <input type="file" name="attached_file" class="form-control">
+            <small class="form-help">Ruxsat etilgan formatlar: PDF, TXT, DOCX, XLSX, PNG, JPG, ZIP. Maksimal hajm: 15 MB.</small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">O‘quvchining qo‘shimcha izohi</label>
+            <textarea name="student_notes" class="form-control" rows="2" placeholder="O‘qituvchiga ishingiz haqida aytmoqchi bo‘lgan qo‘shimcha fikringiz"></textarea>
+        </div>
+
+        <!-- Tugmalar: Qoralama yoki Rasmiy topshirish -->
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            <button type="submit" onclick="document.getElementById('isDraftInput').value='true'" class="btn btn-outline" style="flex: 1;">
+                💾 Qoralama sifatida saqlash
+            </button>
+            <button type="submit" onclick="document.getElementById('isDraftInput').value='false'" class="btn btn-primary" style="flex: 1.2;">
+                🚀 Rasmiy topshirish (O‘qituvchiga yuborish)
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

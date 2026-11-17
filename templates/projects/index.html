@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Loyiha ustaxonasi - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Loyiha ustaxonasi</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Amaliy muammolarni hal qilishga qaratilgan kompleks o‘quv loyihalari
+        </p>
+    </div>
+</div>
+
+<!-- 1. Namunaviy loyihalar -->
+<h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+    ⭐ Namunaviy amaliy loyiha shablonlari
+</h2>
+
+<div class="grid grid-cols-2" style="gap: 1.5rem; margin-bottom: 2.5rem;">
+    {% for tmpl in templates %}
+        <div class="card" style="border-top: 4px solid var(--accent); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span class="role-pill student">{{ tmpl.grade }}-sinf loyihasi</span>
+                    <span style="font-size: 0.82rem; color: var(--text-muted);">{{ tmpl.total_lessons }} ta ketma-ket dars</span>
+                </div>
+
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">
+                    {{ tmpl.title }}
+                </h3>
+
+                <p style="color: #334155; font-size: 0.92rem; line-height: 1.55; margin-bottom: 1rem;">
+                    {{ tmpl.description }}
+                </p>
+
+                <div style="background-color: #f8fafc; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem;">
+                    <strong>4 darslik tizimli bosqichlar:</strong>
+                    <ol style="margin-left: 1.25rem; margin-top: 0.4rem; color: #475569; line-height: 1.5;">
+                        {% for step in tmpl.steps.all %}
+                            <li><strong>{{ step.title }}</strong>: <em>{{ step.expected_artifact }}</em></li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'projects:detail' tmpl.id %}" class="btn btn-outline btn-sm" style="flex: 1;">
+                    Loyihani ko‘rish
+                </a>
+                {% if is_teacher or is_admin %}
+                    <a href="{% url 'projects:assign' tmpl.id %}" class="btn btn-primary btn-sm" style="flex: 1.2;">
+                        📢 Sinfga biriktirish
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- 2. Sinfga biriktirilgan faol loyihalar -->
+<h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+    📋 Sinfda bajarilayotgan faol loyihalar
+</h2>
+
+<div class="grid grid-cols-2" style="gap: 1.25rem;">
+    {% for ass in assignments %}
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.5rem;">
+                <span class="card-title">{{ ass.classroom.name }}</span>
+                <span class="role-pill {% if ass.is_group_project %}teacher{% else %}student{% endif %}">
+                    {% if ass.is_group_project %}Guruhli loyiha{% else %}Individual loyiha{% endif %}
+                </span>
+            </div>
+            
+            <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+                {{ ass.project_template.title }}
+            </h4>
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <strong>O‘qituvchi:</strong> {{ ass.teacher.get_full_name|default:ass.teacher.username }}<br>
+                <strong>Topshirish muddati (deadline):</strong> {{ ass.deadline|default:"Belgilanmagan" }}<br>
+                {% if ass.is_group_project %}
+                    <strong>Guruhlar:</strong> {{ ass.groups.count }} ta guruh tuzilgan
+                {% endif %}
+            </div>
+
+            <a href="{% url 'projects:assignment_detail' ass.id %}" class="btn btn-accent btn-sm" style="width: 100%;">
+                Loyiha maydoniga o‘tish →
+            </a>
+        </div>
+    {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">📁</div>
+            <h3 class="empty-state-title">Hozircha biriktirilgan faol loyihalar mavjud emas</h3>
+            <p class="empty-state-desc">
+                {% if is_teacher or is_admin %}
+                    Yuqoridagi namunaviy loyihani o‘z sinfingizga biriktirishingiz mumkin.
+                {% else %}
+                    O‘qituvchingiz loyiha biriktirgandan so‘ng bu yerda ko‘rinadi.
+                {% endif %}
+            </p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

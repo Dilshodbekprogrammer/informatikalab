@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Darslarim - InformatikaLab{% endblock %}
+
+{% block content %}
+<div class="card-header" style="border:none; padding: 0 0 1.25rem 0; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Mening darslarim</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Dars konstruktori yordamida loyihalangan informatika darslari</p>
+    </div>
+    <div>
+        <a href="{% url 'lessons:create' %}" class="btn btn-primary">
+            ➕ Yangi dars loyihalash
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-3" style="gap: 1.25rem;">
+    {% for lesson in lessons %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                    <span class="role-pill {% if lesson.status == 'assigned' %}student{% else %}teacher{% endif %}">
+                        {{ lesson.get_status_display }}
+                    </span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        ⏱️ {{ lesson.duration_minutes }} daqiqa
+                    </span>
+                </div>
+
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">
+                    {{ lesson.title }}
+                </h3>
+
+                <div style="font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">
+                    💡 {{ lesson.method.title|default:"Metod tanlanmagan" }}
+                </div>
+
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 0.75rem; line-height: 1.5;">
+                    {{ lesson.learning_objective|truncatewords:15 }}
+                </p>
+
+                <div style="font-size: 0.82rem; color: var(--text-muted); background: #f8fafc; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.75rem;">
+                    <strong>Sinf:</strong> {{ lesson.classroom.name|default:"Biriktirilmagan" }}<br>
+                    <strong>Bosqichlar:</strong> {{ lesson.stages.count }} ta (jami: {{ lesson.total_stages_duration }} min)
+                </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'lessons:detail' lesson.id %}" class="btn btn-outline btn-sm" style="flex: 1;">Ko‘rish</a>
+                <a href="{% url 'lessons:edit' lesson.id %}" class="btn btn-outline btn-sm">Tahrirlash</a>
+                <a href="{% url 'lessons:duplicate' lesson.id %}" class="btn btn-outline btn-sm" title="Nusxa olish">📋</a>
+                <a href="{% url 'lessons:print' lesson.id %}" target="_blank" class="btn btn-outline btn-sm" title="Chop etish">🖨️</a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">📝</div>
+            <h3 class="empty-state-title">Hozircha darslar mavjud emas</h3>
+            <p class="empty-state-desc">Dars konstruktori orqali xorijiy metodlarga asoslangan birinchi dars rejangizni tuzing.</p>
+            <a href="{% url 'lessons:create' %}" class="btn btn-primary">Dars yaratish</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

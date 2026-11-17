@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}{{ submission.lesson_step.title }} - Topshiriq tafsiloti va Versiyalar{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 1.25rem;">
+    <a href="{% url 'portfolio:index' %}" class="btn btn-outline btn-sm">← Portfolioga qaytish</a>
+</div>
+
+<div class="card" style="box-shadow: var(--shadow-md); margin-bottom: 1.5rem;">
+    <!-- Sarlavha qismi -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <span class="role-pill teacher">{{ submission.assignment.classroom.name }}</span>
+                <span class="role-pill {% if submission.status == 'approved' %}student{% elif submission.status == 'needs_revision' %}teacher{% else %}admin{% endif %}">
+                    {{ submission.get_status_display }}
+                </span>
+                {% if submission.group %}
+                    <span style="font-size: 0.8rem; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                        👥 Guruh: {{ submission.group.name }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">
+                {{ submission.lesson_step.title }}
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Loyiha: <strong>{{ submission.assignment.project_template.title }}</strong> | 
+                O‘quvchi: <strong>{{ submission.student.get_full_name|default:submission.student.username }}</strong>
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            {% if versions.count > 1 %}
+                <a href="{% url 'portfolio:compare_versions' submission.id %}" class="btn btn-outline btn-sm">
+                    ⚖️ Versiyalarni taqqoslash (Diff)
+                </a>
+            {% endif %}
+
+            {% if is_student %}
+                <a href="{% url 'projects:submit_step' submission.assignment.id submission.lesson_step.id %}" class="btn btn-accent btn-sm">
+                    🚀 Yangi versiya yuborish (Takomillashtirish)
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 1. Versiyalar Tarixi (V1, V2, ...) -->
+    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+        📜 Topshirilgan versiyalar tarixi (Evolyutsiya)
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2rem;">
+        {% for ver in versions %}
+            <div class="card" style="border: 2px solid {% if forloop.first %}var(--accent){% else %}var(--border-color){% endif %}; background-color: #fff; margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;">
+                    <div>
+                        <span class="role-pill {% if forloop.first %}student{% else %}teacher{% endif %}" style="font-weight: 800; font-family: monospace;">
+                            Versiya {{ ver.version_number }} {% if forloop.first %}(Eng so‘nggi){% endif %}
+                        </span>
+                        <strong style="margin-left: 0.5rem; color: var(--primary); font-size: 1.05rem;">
+                            {{ ver.title }}
+                        </strong>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">
+                        ⏱️ {{ ver.submitted_at|date:"d.m.Y H:i" }}
+                        {% if ver.is_draft %}<span class="role-pill teacher" style="margin-left: 4px;">Qoralama</span>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Mahsulot matni -->
+                <div style="font-size: 0.92rem; color: #334155; line-height: 1.6; margin-bottom: 1rem; background-color: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: pre-line;">
+                    {{ ver.content_text }}
+                </div>
+
+                <!-- Guruhdagi individual hissa (agar mavjud bo'lsa) -->
+                {% if ver.individual_contribution %}
+                    <div style="margin-bottom: 0.85rem; padding: 0.75rem; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; font-size: 0.88rem; color: #1e40af;">
+                        <strong>👤 O‘quvchining guruhdagi shaxsiy hissasi (Individual hissa):</strong><br>
+                        {{ ver.individual_contribution }}
+                    </div>
+                {% endif %}
+
+                <!-- O'quvchining izohi -->
+                {% if ver.student_notes %}
+                    <div style="font-size: 0.85rem; color: #475569; margin-bottom: 0.85rem;">
+                        <strong>O‘quvchi izohi:</strong> <em>"{{ ver.student_notes }}"</em>
+                    </div>
+                {% endif %}
+
+                <!-- Biriktirilgan laboratoriya natijasi -->
+                {% if ver.linked_lab_submission %}
+                    <div style="margin-bottom: 0.85rem; padding: 0.65rem 0.85rem; background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 4px; font-size: 0.85rem; color: #115e59;">
+                        🔬 <strong>Biriktirilgan laboratoriya tajribasi:</strong> {{ ver.linked_lab_submission.title }}<br>
+                        <em>Haqiqiy olingan natija: {{ ver.linked_lab_submission.calculated_result }}</em>
+                    </div>
+                {% endif %}
+
+                <!-- Biriktirilgan fayl -->
+                {% if ver.attached_file %}
+                    <div style="margin-bottom: 0.85rem; font-size: 0.88rem;">
+                        📎 <strong>Biriktirilgan fayl:</strong>
+                        <a href="{% url 'portfolio:download_file' ver.id %}" class="btn btn-outline btn-sm" style="display: inline-flex; margin-left: 0.5rem;">
+                            Yuklab olish / Ko‘rish ↗
+                        </a>
+                    </div>
+                {% endif %}
+
+                <!-- Ushbu versiyaga tegishli o'qituvchi izohlari -->
+                <div style="margin-top: 1rem; border-top: 1px solid #f1f5f9; padding-top: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong style="font-size: 0.9rem; color: #854d0e;">
+                            👨‍🏫 O‘qituvchi izohi va baholash mezonlari (v{{ ver.version_number }} uchun):
+                        </strong>
+                        
+                        {% if is_teacher or is_admin %}
+                            <a href="{% url 'portfolio:add_feedback' ver.id %}" class="btn btn-outline btn-sm">
+                                💬 Izoh qoldirish / Tavsiya berish
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% for fb in ver.feedbacks.all %}
+                        <div style="background-color: #fefce8; border: 1px solid #fef08a; padding: 0.85rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #a16207; margin-bottom: 0.4rem;">
+                                <span>O‘qituvchi: <strong>{{ fb.teacher.get_full_name|default:fb.teacher.username }}</strong></span>
+                                <span>{{ fb.created_at|date:"d.m.Y H:i" }}</span>
+                            </div>
+                            <p style="font-size: 0.9rem; color: #713f12; line-height: 1.5; margin-bottom: 0.5rem;">
+                                "{{ fb.feedback_text }}"
+                            </p>
+                            
+                            <!-- Ochiq ko'rsatilgan baholash mezonlari -->
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.78rem;">
+                                <span style="background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde047;">Tushunarlilik: <strong>{{ fb.criteria_clarity }}</strong></span>
+                                <span style="background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde047;">Texnik to‘g‘rilik: <strong>{{ fb.criteria_technical }}</strong></span>
+                                <span style="background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde047;">Ijodiy yondashuv: <strong>{{ fb.criteria_creativity }}</strong></span>
+                                <span style="background: {% if fb.requires_revision %}#fee2e2; color:#991b1b{% else %}#dcfce7; color:#166534{% endif %}; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                                    {% if fb.requires_revision %}⚠️ Takomillashtirish zarur{% else %}✅ Qabul qilindi{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">
+                            Ushbu versiyaga hozircha o‘qituvchi tomonidan izoh berilmagan.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- 2. O'quvchining Yakuniy Refleksiyasi (3 ta majburiy savol) -->
+    <div class="card" style="background-color: #f0fdf4; border: 2px solid #bbf7d0;">
+        <h3 class="card-title" style="color: #166534; margin-bottom: 0.75rem;">
+            🤔 O‘quvchining yakuniy refleksiyasi
+        </h3>
+        <p style="font-size: 0.85rem; color: #15803d; margin-bottom: 1rem;">
+            Takomillashtirish jarayoni yakunida o‘z mehnatingizni tahlil qiling:
+        </p>
+
+        {% if reflection %}
+            <div style="display: grid; gap: 0.75rem;">
+                <div style="background: #fff; padding: 0.85rem; border-radius: 6px; border: 1px solid #bbf7d0;">
+                    <strong style="color: #14532d; font-size: 0.9rem;">1. "Nima yaratdim?"</strong>
+                    <p style="color: #1f2937; font-size: 0.9rem; margin-top: 0.25rem;">{{ reflection.what_created }}</p>
+                </div>
+                <div style="background: #fff; padding: 0.85rem; border-radius: 6px; border: 1px solid #bbf7d0;">
+                    <strong style="color: #14532d; font-size: 0.9rem;">2. "Qaysi xatoni aniqladim?"</strong>
+                    <p style="color: #1f2937; font-size: 0.9rem; margin-top: 0.25rem;">{{ reflection.what_error_found }}</p>
+                </div>
+                <div style="background: #fff; padding: 0.85rem; border-radius: 6px; border: 1px solid #bbf7d0;">
+                    <strong style="color: #14532d; font-size: 0.9rem;">3. "Yechimimni qanday yaxshiladim?"</strong>
+                    <p style="color: #1f2937; font-size: 0.9rem; margin-top: 0.25rem;">{{ reflection.how_improved }}</p>
+                </div>
+            </div>
+        {% elif is_student %}
+            <!-- O'quvchi uchun to'ldirish formasi -->
+            <form method="post" action="{% url 'portfolio:save_reflection' submission.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" style="color: #14532d;">1. "Nima yaratdim?"</label>
+                    <textarea name="what_created" class="form-control" rows="2" placeholder="Ushbu darsda qanday aniq mahsulot yoki hisobot yaratdingiz?" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="color: #14532d;">2. "Qaysi xatoni aniqladim?"</label>
+                    <textarea name="what_error_found" class="form-control" rows="2" placeholder="Dastlabki versiyada yoki tajribada qanday kamchilik/xatolik yuz bergan edi?" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="color: #14532d;">3. "Yechimimni qanday yaxshiladim?"</label>
+                    <textarea name="how_improved" class="form-control" rows="2" placeholder="O‘qituvchi tavsiyasidan so‘ng o‘z yechimingizni qanday takomillashtirdingiz?" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Refleksiyani saqlash
+                </button>
+            </form>
+        {% else %}
+            <div style="color: var(--text-muted); font-size: 0.9rem;">
+                O‘quvchi hali yakuniy refleksiyani to‘ldirmagan.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
